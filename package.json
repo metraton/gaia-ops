@@ -1,0 +1,59 @@
+{
+  "name": "@jaguilar87/gaia-ops",
+  "version": "1.0.0",
+  "description": "Multi-agent orchestration system for Claude Code - DevOps automation toolkit",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "gaia-init": "./bin/gaia-init.js"
+  },
+  "keywords": [
+    "claude-code",
+    "devops",
+    "gitops",
+    "terraform",
+    "kubernetes",
+    "ai-agents",
+    "gaia-ops",
+    "orchestration",
+    "automation"
+  ],
+  "author": "Jorge Aguilar <jaguilar1897@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/metraton/gaia-ops.git"
+  },
+  "files": [
+    "bin/",
+    "agents/",
+    "tools/",
+    "hooks/",
+    "commands/",
+    "templates/",
+    "config/",
+    "speckit/",
+    "CLAUDE.md",
+    "CHANGELOG.md",
+    "index.js"
+  ],
+  "scripts": {
+    "test": "pytest tests/ -v",
+    "validate": "python3 tools/commit_validator.py",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "prompts": "^2.4.2",
+    "chalk": "^5.3.0",
+    "ora": "^7.0.1",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.50.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "python": ">=3.9"
+  }
+}

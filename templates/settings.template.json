@@ -1,0 +1,307 @@
+{
+  "system_prompt": "You are part of an intelligent DevOps agent system. Use specialized agents via the Task tool for complex operations.",
+
+  "hooks": {
+    "pre_tool_use": ".claude/hooks/pre_tool_use.py",
+    "post_tool_use": ".claude/hooks/post_tool_use.py",
+    "subagent_stop": ".claude/hooks/subagent_stop.py"
+  },
+
+  "commands": {
+    "speckit.init": {
+      "file": ".claude/commands/speckit.init.md",
+      "description": "Bootstrap Spec-Kit and validate/create project-context.json"
+    },
+    "speckit.specify": {
+      "file": ".claude/commands/speckit.specify.md",
+      "description": "Create feature specification with auto-filled project context"
+    },
+    "speckit.plan": {
+      "file": ".claude/commands/speckit.plan.md",
+      "description": "Generate implementation plan with integrated clarification"
+    },
+    "speckit.tasks": {
+      "file": ".claude/commands/speckit.tasks.md",
+      "description": "Generate enriched task list with validation"
+    },
+    "speckit.implement": {
+      "file": ".claude/commands/speckit.implement.md",
+      "description": "Execute implementation tasks with agent orchestration"
+    },
+    "speckit.add-task": {
+      "file": ".claude/commands/speckit.add-task.md",
+      "description": "Add single task with inline metadata"
+    },
+    "speckit.analyze-task": {
+      "file": ".claude/commands/speckit.analyze-task.md",
+      "description": "Deep analysis of specific task (auto-triggered for T2/T3)"
+    },
+    "save-session": {
+      "file": ".claude/commands/save-session.md",
+      "description": "Export session bundle with active context"
+    }
+  },
+
+  "agents": {
+    "terraform-architect": {
+      "prompt_file": ".claude/agents/terraform-architect.md",
+      "triggers": ["#terraform", "#infrastructure", "terraform", "terragrunt"],
+      "security_tier": ["T0", "T1", "T2"]
+    },
+    "gitops-operator": {
+      "prompt_file": ".claude/agents/gitops-operator.md",
+      "triggers": ["#kubernetes", "#gitops", "#helm", "kubectl", "flux", "helm"],
+      "security_tier": ["T0", "T1", "T2"]
+    },
+    "gcp-troubleshooter": {
+      "prompt_file": ".claude/agents/gcp-troubleshooter.md",
+      "triggers": ["#gcp", "#gke", "gcloud", "GKE", "Cloud SQL"],
+      "security_tier": ["T0"]
+    },
+    "aws-troubleshooter": {
+      "prompt_file": ".claude/agents/aws-troubleshooter.md",
+      "triggers": ["#aws", "#eks", "#ec2", "aws", "EKS", "RDS"],
+      "security_tier": ["T0"]
+    },
+    "devops-developer": {
+      "prompt_file": ".claude/agents/devops-developer.md",
+      "triggers": ["#dockerfile", "#ci", "#pipeline", "docker", "npm", "build"],
+      "security_tier": ["T0", "T1"]
+    }
+  },
+
+  "security": {
+    "default_tier": "T0",
+    "tier_definitions": {
+      "T0": {
+        "name": "Read Only",
+        "description": "describe, get, show, list operations only",
+        "allowed_patterns": [
+          "terraform (fmt|validate|plan|show|output|version)",
+          "kubectl (get|describe|logs|explain|version)",
+          "gcloud .* (describe|list|show|get)",
+          "helm (template|lint|list|status|version)"
+        ]
+      },
+      "T1": {
+        "name": "Validation",
+        "description": "validate, plan, template, lint operations",
+        "allowed_patterns": [
+          "terraform (validate|plan|fmt -check)",
+          "helm (template|lint)",
+          "kubectl .* --dry-run=client"
+        ]
+      },
+      "T2": {
+        "name": "Dry Run",
+        "description": "--dry-run and --plan-only operations",
+        "allowed_patterns": [
+          ".* --dry-run.*",
+          ".* --plan-only.*"
+        ]
+      },
+      "T3": {
+        "name": "Blocked",
+        "description": "apply, reconcile, deploy operations - BLOCKED",
+        "blocked": true
+      }
+    },
+    "always_blocked": [
+      "terraform apply",
+      "terraform destroy",
+      "kubectl apply",
+      "kubectl delete",
+      "helm install",
+      "helm upgrade",
+      "gcloud .* (create|update|delete|patch)"
+    ]
+  },
+
+  "permissions": {
+    "allow": [
+      "Bash(echo \"Generated password for tcm_app: $TCM_APP_PASSWORD\")",
+      "Read(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "Bash(./tests/task-*-validation.sh:*)",
+      "Bash(/home/jaguilar/aaxis/rnd/repositories/tcm-deployment/tests/task-104-validation.sh:*)",
+      "Bash(./spec-kit-tcm-plan/.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(./scripts/dev/setup-local.sh:*)",
+      "Bash(./scripts/dev/test-local-container-stack.sh:*)",
+      "Bash(./scripts/headless/synthesize-bundle.sh:*)",
+      "Bash(./scripts/test-pubsub-flow.sh:*)",
+      "Bash(./scripts/validate-eslint.sh:*)",
+      "Bash(./test-session-intelligence.sh:*)",
+      "Bash(./test-session-intelligence-v2.sh:*)",
+      "Bash(./test-hooks.sh:*)",
+      "Bash(./ssl-validation-test.sh:*)",
+      "Bash(./e2e-test-complete.sh:*)",
+      "Bash(/home/jaguilar/aaxis/rnd/repositories/.claude/tools/quicktriage_gitops_operator.sh:*)",
+      "Bash(/home/jaguilar/aaxis/rnd/repositories/.claude/tools/test_context_reader.sh)",
+      "Bash(chmod:*)",
+      "Bash(tree:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(ls:*)",
+      "Bash(pwd:*)",
+      "Bash(wc:*)",
+      "Bash(diff:*)",
+      "Bash(which:*)",
+      "Bash(whoami:*)",
+      "Bash(date:*)",
+      "Bash(env:*)",
+      "Bash(printenv:*)",
+      "Bash(basename:*)",
+      "Bash(dirname:*)",
+      "Bash(realpath:*)",
+      "Bash(touch:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(tee:*)",
+      "Bash(echo:*)",
+      "Bash(awk:*)",
+      "Bash(sed:*)",
+      "Bash(grep:*)",
+      "Bash(egrep:*)",
+      "Bash(rg:*)",
+      "Bash(jq:*)",
+      "Bash(yq:*)",
+      "Bash(base64:*)",
+      "Bash(sha256sum:*)",
+      "Bash(md5sum:*)",
+      "Bash(nslookup:*)",
+      "Bash(dig:*)",
+      "Bash(openssl:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(nc:*)",
+      "Bash(ping:*)",
+      "Bash(traceroute:*)",
+      "Bash(PROJECT_ID=\"aaxis-rnd-general-project\")",
+      "Bash(REGION=\"us-central1\")",
+      "Bash(POSTGRES_INSTANCE=\"tcm-postgres-non-prod\")",
+      "Bash(export PUBSUB_EMULATOR_HOST=localhost:8085)",
+      "Bash(terragrunt (output|plan|validate|fmt|init|show|state|graph-dependencies):*)",
+      "Bash(terragrunt run-all (plan|validate|output|init):*)",
+      "Bash(terraform (fmt|validate|plan|show|output|version):*)",
+      "Bash(helm (template|lint|list|status):*)",
+      "Bash(helm show values:*)",
+      "Bash(kubectl (get|describe|logs|top|version):*)",
+      "Bash(kubectl explain:*)",
+      "Bash(kubectl wait:*)",
+      "Bash(kubeseal:*)",
+      "Bash(flux (check|get):*)",
+      "Bash(flux reconcile helmrelease --dry-run:*)",
+      "Bash(flux reconcile kustomization --dry-run:*)",
+      "Bash(flux reconcile helmrelease * --timeout=*)",
+      "Bash(flux reconcile kustomization * --timeout=*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git diff --cached:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git branch:*)",
+      "Bash(gcloud auth:*)",
+      "Bash(gcloud config get-value:*)",
+      "Bash(gcloud config set:*)",
+      "Bash(gcloud .* (describe|list|get):*)",
+      "Bash(gcloud logging read:*)",
+      "Bash(gcloud asset search-all-resources:*)",
+      "Bash(gcloud container clusters describe:*)",
+      "Bash(gcloud container images list:*)",
+      "Bash(gcloud container images describe:*)",
+      "Bash(gcloud compute (describe|list|get)-*:*)",
+      "Bash(gcloud compute backend-services (describe|list|get-health):*)",
+      "Bash(gcloud compute health-checks describe:*)",
+      "Bash(gcloud compute forwarding-rules list:*)",
+      "Bash(gcloud compute url-maps describe:*)",
+      "Bash(gcloud compute ssl-certificates (list|describe):*)",
+      "Bash(gcloud compute ssl-policies list:*)",
+      "Bash(gcloud dns record-sets list:*)",
+      "Bash(gcloud artifacts docker (tags|images) (list|describe):*)",
+      "Bash(gcloud iam service-accounts (list|get-iam-policy|keys list):*)",
+      "Bash(gcloud projects get-iam-policy:*)",
+      "Bash(aws sts get-caller-identity:*)",
+      "Bash(aws eks (describe|list)-*:*)",
+      "Bash(aws elbv2 (describe|list)-*:*)",
+      "Bash(aws ec2 (describe|list)-*:*)",
+      "Bash(aws rds (describe|list)-*:*)",
+      "Bash(aws iam (get|list)-*:*)",
+      "Bash(aws cloudwatch (describe|list)-*:*)",
+      "Bash(aws logs (describe|list)-*:*)",
+      "Bash(aws s3 ls:*)",
+      "Bash(aws ecr (describe|list)-*:*)",
+      "Bash(aws cloudformation (describe|list)-*:*)",
+      "Bash(aws route53 (list|get)-*:*)",
+      "Bash(eksctl get:*)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run test:*)",
+      "Bash(pnpm run lint:*)",
+      "Bash(pnpm test:*)",
+      "Bash(python3:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(pytest:*)",
+      "Bash(pip install:*)",
+      "Bash(docker (build|run|logs|stop|rm|rmi|exec|compose|ps|images):*)",
+      "Bash(docker-compose:*)",
+      "Bash(time docker build:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:dify.ai)",
+      "WebFetch(domain:docs.dify.ai)",
+      "WebFetch(domain:docs.aws.amazon.com)",
+      "WebFetch(domain:cloud.google.com)"
+    ],
+    "deny": [],
+    "ask": [
+      "Edit(*)",
+      "Write(*)",
+      "NotebookEdit(*)",
+      "Bash(rm:*)",
+      "Bash(rmdir:*)",
+      "Bash(mv:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(terraform apply:*)",
+      "Bash(kubectl apply:*)",
+      "Bash(kubectl delete:*)",
+      "Bash(helm (install|upgrade):*)",
+      "Bash(gcloud .* (create|update|delete|patch):*)",
+      "Bash(aws .* (create|update|delete|modify|put):*)"
+    ]
+  },
+
+  "routing": {
+    "auto_route_tasks": true,
+    "task_metadata_required": false,
+    "fallback_agent": "devops-developer",
+    "confidence_threshold": 0.7
+  },
+
+  "logging": {
+    "audit_enabled": true,
+    "metrics_enabled": true,
+    "log_directory": ".claude/logs",
+    "metrics_directory": ".claude/metrics",
+    "retention_days": 30
+  },
+
+  "context": {
+    "bundle_directory": "contexts/bundles",
+    "auto_bundle_on_completion": true,
+    "max_bundle_size_mb": 50
+  },
+
+  "environment": {
+    "project_id": "aaxis-rnd-general-project",
+    "region": "us-central1",
+    "cluster_name": "tcm-gke-non-prod",
+    "postgres_instance": "tcm-postgres-non-prod"
+  }
+}

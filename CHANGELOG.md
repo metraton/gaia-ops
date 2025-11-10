@@ -1,0 +1,315 @@
+# Changelog: CLAUDE.md
+
+All notable changes to the CLAUDE.md orchestrator instructions are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [2.1.0] - 2025-11-07
+
+### Changed
+
+- **Optimized CLAUDE.md verbosity:** Further reduced from 195 lines to 154 lines (21% additional reduction)
+- **Converted narrative to rules format:** All sections now use Rule X.Y [Priority] format for clarity
+- **Implemented numeric priority system:** `[P0]` (critical), `[P1]` (important) for better emphasis
+- **Reduced Python code blocks:** Removed verbose code examples, replaced with concise function references
+- **Optimized sections:**
+  - Core Operating Principles: Narrative → Rules 1.0-4.0
+  - Orchestrator Workflow: Narrative → Rule 5.0-5.1 with table format
+  - Git Operations: Narrative → Rules 6.0-6.1 with table format
+  - Common Anti-Patterns: Lists → Rule 7.0 with comparison table
+
+### Added
+
+- **Code examples in templates:** Created `.claude/templates/code-examples/` with:
+  - `commit_validation.py` (86 lines) - Complete commit validation patterns
+  - `clarification_workflow.py` (94 lines) - Phase 0 clarification examples
+  - `approval_gate_workflow.py` (141 lines) - Phase 4 approval gate examples
+- **Rule numbering system:** Rules 1.0-7.0 for easy reference and navigation
+- **Priority indicators:** `[P0]` for critical rules, `[P1]` for important rules
+
+### Improved
+
+- **Token efficiency:** Additional 25% reduction (1,900 → ~1,450 tokens)
+- **Scannability:** Table format for workflows, commit rules, anti-patterns
+- **Conciseness:** Removed redundant explanations, kept essential info
+- **Maintainability:** Code examples separate from core instructions
+
+---
+
+## [2.0.0] - 2025-11-07
+
+### Changed (BREAKING)
+
+- **Refactored to modular structure:** Split 380-line monolith into:
+  - `CLAUDE.md` (core instructions, 196 lines)
+  - `.claude/docs/orchestration-workflow.md` (phases 0-6, ~550 lines)
+  - `.claude/docs/git-standards.md` (complete git specification, ~450 lines)
+  - `.claude/docs/context-contracts.md` (agent contracts, ~400 lines)
+  - `.claude/docs/agent-catalog.md` (agent capabilities, ~550 lines)
+
+- **Updated Core Operating Principles:**
+  - Changed Principle #1 from "ZERO Direct Execution" to "Selective Delegation (Context-Aware)"
+  - Clarified that orchestrator CAN execute SIMPLE operations (commits, file edits, queries)
+  - Clarified that orchestrator MUST delegate COMPLEX workflows (infrastructure, deployments)
+
+### Added
+
+- **Frontmatter with metadata:**
+  - Version: 2.0.0
+  - Last updated date
+  - Maintainer info
+  - Changelog reference
+
+- **Git Operations section:**
+  - Clear distinction between orchestrator-level commits (simple, ad-hoc) and agent-level commits (complex workflows)
+  - Table of "Distinction Rules" showing which handler (orchestrator or agent) for each scenario
+  - Universal validation requirement (`commit_validator.py`) for both orchestrator and agents
+
+- **References section:**
+  - Links to all modular docs (`.claude/docs/*.md`)
+  - Links to code examples (`.claude/templates/code-examples/`)
+
+- **System Paths section:**
+  - Centralized list of all system paths (agent system, tools, logs, tests, project SSOT)
+
+- **Common Anti-Patterns section:**
+  - DON'T list (skip approval gate, use context_provider for meta-agents, etc.)
+  - DO list (route tasks, use AskUserQuestion, update SSOT, etc.)
+
+### Improved
+
+- **Token efficiency:** Reduced from ~3,800 tokens to ~1,500 tokens (60% reduction)
+- **Navigability:** Clear section structure with references to detailed docs
+- **Mantenibility:** Changes to git standards, workflows, or contracts don't require editing CLAUDE.md
+- **Clarity:** Explicit distinction between project agents and meta-agents
+
+### Removed
+
+- **Detailed Phase 0-6 workflows:** Moved to `.claude/docs/orchestration-workflow.md`
+- **Complete git standards:** Moved to `.claude/docs/git-standards.md`
+- **Full context contracts:** Moved to `.claude/docs/context-contracts.md`
+- **Detailed agent capabilities:** Moved to `.claude/docs/agent-catalog.md`
+- **Code examples:** Moved to `.claude/templates/code-examples/`
+
+---
+
+## [1.4.x] - 2025-11-01 to 2025-11-06
+
+### Added
+
+- **Phase 0: Intelligent Clarification** (NEW)
+  - `clarify_engine.py` integration for ambiguity detection
+  - Dynamic questions with options from `project-context.json`
+  - Enriched prompt generation for better routing accuracy
+
+- **Phase 6: System State Update**
+  - Mandatory SSOT updates after realization
+  - `TaskManager` integration for `tasks.md` updates (handles >25K tokens)
+  - Infrastructure state updates (`project-context.json`)
+
+### Changed
+
+- **Phase 4: Approval Gate** made MANDATORY (enforced with validation logic)
+- **Phase 5: Realization** requires `validation["approved"] == True` (cannot skip)
+
+---
+
+## [1.3.x] - 2025-10-15 to 2025-10-31
+
+### Added
+
+- **Git Commit Standards:**
+  - `commit_validator.py` integration (mandatory validation)
+  - Conventional Commits format enforcement
+  - Forbidden footers (Claude Code attribution)
+  - Violations logging to `.claude/logs/commit-violations.jsonl`
+
+- **Context Contracts:**
+  - Defined minimum context payload for each agent
+  - `context_provider.py` as SSOT for context generation
+
+### Changed
+
+- **Core Principle #4:** Clarified two-phase workflow (Planning → Approval → Realization)
+
+---
+
+## [1.2.x] - 2025-09-20 to 2025-10-14
+
+### Added
+
+- **Agent System Overview:**
+  - Distinction between Project Agents (use `context_provider.py`) and Meta-Agents (manual context)
+  - Security tiers (T0-T3) for operations
+  - Agent capabilities and tools
+
+### Changed
+
+- **Orchestrator Workflow:** Simplified to 5 phases (before Phase 0 was added later)
+
+---
+
+## [1.1.x] - 2025-08-15 to 2025-09-19
+
+### Added
+
+- **Execution Standards:**
+  - Use native tools over bash redirections
+  - Execute simple commands (not chained with `&&`)
+  - Permission priority rules
+
+### Changed
+
+- **Language Policy:** Separated technical docs (English) from chat interactions (Spanish)
+
+---
+
+## [1.0.0] - 2025-08-01
+
+### Added
+
+- **Initial CLAUDE.md structure:**
+  - Language Policy
+  - Core Operating Principles (ZERO Direct Execution, Delegate to Specialists, Master of Context)
+  - Basic workflow (Analysis → Context → Invocation → Verification)
+  - Agent list with roles
+
+---
+
+## Future (Planned)
+
+### Version 2.1.0 (Planned Q1 2026)
+
+- **Improved routing:** Machine learning-based agent selection
+- **Enhanced clarification:** Proactive clarification based on user history
+- **Performance metrics:** Track token usage, latency, success rates per agent
+
+### Version 2.2.0 (Planned Q2 2026)
+
+- **Multi-agent coordination:** Support for workflows requiring multiple agents (e.g., terraform + gitops)
+- **Rollback automation:** Automatic rollback on failed verifications
+- **Enhanced observability:** Real-time workflow visualization
+
+### Version 3.0.0 (Planned Q3 2026 - BREAKING)
+
+- **Agent auto-discovery:** Agents register themselves via manifest files
+- **Dynamic contract negotiation:** Agents specify required context dynamically
+- **Plugin system:** Third-party agents can be added without modifying CLAUDE.md
+
+---
+
+## Migration Guide
+
+### Migrating from 1.x to 2.0
+
+**What changed:**
+
+1. **CLAUDE.md is now modular:**
+   - The file is 196 lines instead of 380 lines
+   - Detailed docs moved to `.claude/docs/*.md`
+
+2. **Core Principle #1 updated:**
+   - OLD: "ZERO Direct Execution" (orchestrator never executes technical work)
+   - NEW: "Selective Delegation" (orchestrator executes SIMPLE ops, delegates COMPLEX workflows)
+
+3. **Git operations clarified:**
+   - Orchestrator CAN do ad-hoc commits ("commitea los cambios")
+   - Agents do commits as part of realization workflows
+   - Both MUST use `commit_validator.py`
+
+**Breaking changes:**
+
+- None (backward compatible). Orchestrator behavior remains the same, only documentation structure changed.
+
+**Action required:**
+
+- None. System continues to work as before.
+
+**Recommended:**
+
+- Read `.claude/docs/orchestration-workflow.md` to understand full Phase 0-6 workflow
+- Review `.claude/docs/git-standards.md` for complete commit standards
+- Check `.claude/docs/agent-catalog.md` for detailed agent capabilities
+
+---
+
+## Versioning Policy
+
+### Version Number Format: MAJOR.MINOR.PATCH
+
+- **MAJOR:** Breaking changes to orchestrator behavior (requires agent updates, system changes)
+- **MINOR:** New features, sections, or substantial improvements (backward compatible)
+- **PATCH:** Bug fixes, clarifications, typos (backward compatible)
+
+### Examples
+
+- Adding new agent: MINOR (e.g., 2.0.0 → 2.1.0)
+- Changing core principle: MAJOR (e.g., 2.1.0 → 3.0.0)
+- Fixing typo in docs: PATCH (e.g., 2.1.0 → 2.1.1)
+- Refactoring structure (like 2.0.0): MAJOR (changed from monolith to modular)
+
+---
+
+## Contributing
+
+### How to Update CLAUDE.md
+
+1. **For small changes (typos, clarifications):**
+   - Edit `CLAUDE.md` directly
+   - Increment PATCH version in frontmatter
+   - Add entry to this CHANGELOG under "Unreleased"
+
+2. **For new sections or features:**
+   - Decide if belongs in `CLAUDE.md` (core instructions) or `.claude/docs/*.md` (details)
+   - If modular doc, create/update appropriate file in `.claude/docs/`
+   - If core instruction, update `CLAUDE.md` and add reference to modular doc
+   - Increment MINOR version in frontmatter
+   - Add entry to this CHANGELOG under "Unreleased"
+
+3. **For breaking changes:**
+   - Discuss with team first (impacts orchestrator behavior)
+   - Update `CLAUDE.md` and related docs
+   - Increment MAJOR version in frontmatter
+   - Add entry to this CHANGELOG under "Unreleased" with **BREAKING** tag
+   - Create migration guide if needed
+
+### Testing Changes
+
+Before committing changes to CLAUDE.md:
+
+1. **Run validation script:**
+   ```bash
+   python3 .claude/scripts/validate-claude-md.py
+   ```
+
+2. **Check line count:**
+   ```bash
+   wc -l CLAUDE.md
+   # Should be < 250 lines
+   ```
+
+3. **Test with orchestrator:**
+   - Start Claude Code session
+   - Verify CLAUDE.md is loaded correctly
+   - Test sample workflows (routing, clarification, approval)
+
+4. **Run test suite:**
+   ```bash
+   pytest .claude/tests/ -v
+   ```
+
+---
+
+## Maintainers
+
+- **Primary:** Jorge Aguilar (jaguilar@aaxis.com)
+- **Contributors:** Claude Code Agent Swarm
+
+---
+
+## License
+
+Internal documentation for Aaxis RnD team. Not for external distribution.
