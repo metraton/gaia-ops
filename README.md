@@ -20,10 +20,17 @@ Multi-agent orchestration system for Claude Code - DevOps automation toolkit.
 
 ### Quick Start (Recommended)
 
-Use the interactive installer to set up Gaia-Ops in any project:
+Use the built-in interactive installer to set up Gaia-Ops in any project:
 
 ```bash
-npx @jaguilar87/gaia-init
+npx @jaguilar87/gaia-ops init
+```
+
+Or if installed globally:
+
+```bash
+npm install -g @jaguilar87/gaia-ops
+gaia-init
 ```
 
 This will:
@@ -190,11 +197,25 @@ See [CHANGELOG.md](./CHANGELOG.md) for version history.
 - **Claude Code:** Latest version
 - **Git:** >=2.30
 
+## Project Context Management
+
+Gaia-Ops uses a versioned project context for SSOT. After installation, clone your project context:
+
+```bash
+cd .claude
+git clone git@bitbucket.org:yourorg/your-project-context.git project-context
+```
+
+This keeps `project-context.json` versioned separately, while `session/` data remains local.
+
+See [rnd-project-context](https://bitbucket.org/aaxisdigital/rnd-project-context) for an example.
+
 ## Support
 
-- **Issues:** [Bitbucket Repository](https://bitbucket.org/jaguilar1897/ops)
-- **Maintainer:** Jorge Aguilar (jaguilar@aaxis.com)
+- **Issues:** [GitHub Issues](https://github.com/metraton/gaia-ops/issues)
+- **Repository:** [github.com/metraton/gaia-ops](https://github.com/metraton/gaia-ops)
+- **Author:** Jorge Aguilar <jaguilar1897@gmail.com>
 
 ## License
 
-Internal package for Aaxis RnD team. Not for external distribution.
+MIT License - See [LICENSE](./LICENSE) for details.
