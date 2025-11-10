@@ -1,11 +1,11 @@
 {
   "name": "@jaguilar87/gaia-ops",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Multi-agent orchestration system for Claude Code - DevOps automation toolkit",
   "main": "index.js",
   "type": "module",
   "bin": {
-    "gaia-init": "./bin/gaia-init.js"
+    "gaia-init": "bin/gaia-init.js"
   },
   "keywords": [
     "claude-code",
@@ -23,7 +23,7 @@
   "private": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/metraton/gaia-ops.git"
+    "url": "git+https://github.com/metraton/gaia-ops.git"
   },
   "files": [
     "bin/",
