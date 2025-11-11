@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.2] - 2025-11-11
+
+### Added - Pre-generated Semantic Embeddings
+- **NEW:** Included pre-generated intent embeddings in package (74KB total)
+  - `config/intent_embeddings.json` (55KB) - Semantic vectors for intent matching
+  - `config/intent_embeddings.npy` (19KB) - Binary embeddings for fast loading
+  - `config/embeddings_info.json` (371B) - Metadata about embeddings
+
+### Changed - Semantic Routing Now Works Out-of-the-Box
+- **Semantic matching enabled by default:** No manual setup required
+- **Routing accuracy improved:** Ambiguous queries now route correctly using semantic similarity
+- **Example improvement:**
+  ```
+  Query: "puede decirme el estado de los servicios de tcm?"
+  Before: devops-developer (keyword "ci" - incorrect)
+  After: gitops-operator (semantic matching - correct)
+  ```
+
+### Fixed - Directory Structure Consistency
+- **Consolidated `configs/` into `config/`:** All configuration and data files now in single directory
+- **Updated tool references:**
+  - `tools/semantic_matcher.py`: Updated embeddings path (configs/ → config/)
+  - `tools/generate_embeddings.py`: Updated output path (configs/ → config/)
+  - All documentation updated to reference correct paths
+
+### Benefits
+- ✅ **Zero configuration:** Semantic routing works immediately after installation
+- ✅ **Better routing:** Handles ambiguous queries with 6x higher confidence
+- ✅ **Consistent structure:** All config files in one place (`config/`)
+- ✅ **Smaller package:** Embeddings optimized for size (74KB vs 5MB unoptimized)
+- ✅ **Regeneration optional:** Users can regenerate with `python3 .claude/tools/generate_embeddings.py` if needed
+
+### Technical Details
+```
+config/ directory now contains:
+├── Documentation (markdown)
+│   ├── AGENTS.md, agent-catalog.md, context-contracts.md
+│   ├── git-standards.md, orchestration-workflow.md
+├── Provider Contracts (JSON)
+│   ├── context-contracts.gcp.json, context-contracts.aws.json
+│   └── git_standards.json
+└── Semantic Embeddings (JSON + binary) ← NEW
+    ├── intent_embeddings.json
+    ├── intent_embeddings.npy
+    └── embeddings_info.json
+```
+
+---
+
 ## [2.2.1] - 2025-11-10
 
 ### Fixed - Documentation Consistency

@@ -32,10 +32,10 @@ class SemanticMatcher:
         Initialize semantic matcher
 
         Args:
-            embeddings_dir: Directory containing embeddings (defaults to .claude/configs/)
+            embeddings_dir: Directory containing embeddings (defaults to .claude/config/)
         """
         if embeddings_dir is None:
-            embeddings_dir = Path(__file__).parent.parent / "configs"
+            embeddings_dir = Path(__file__).parent.parent / "config"
 
         self.embeddings_dir = embeddings_dir
         self.embeddings: Dict[str, Any] = {}

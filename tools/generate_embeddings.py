@@ -9,8 +9,8 @@ Usage:
     python3 generate_embeddings.py
 
 Output:
-    - .claude/configs/intent_embeddings.npy (binary, ~5MB)
-    - .claude/configs/intent_embeddings.json (readable metadata)
+    - .claude/config/intent_embeddings.npy (binary, ~5MB)
+    - .claude/config/intent_embeddings.json (readable metadata)
 """
 
 import json
@@ -117,7 +117,7 @@ def generate_embeddings():
     print(f"\n   Total examples processed: {total_examples}")
 
     # Save as JSON (readable metadata)
-    output_dir = Path(__file__).parent.parent / "configs"
+    output_dir = Path(__file__).parent.parent / "config"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     json_path = output_dir / "intent_embeddings.json"
