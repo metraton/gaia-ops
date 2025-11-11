@@ -38,7 +38,7 @@ Guidance for Claude Code orchestrator working in this repository.
 
 ## Orchestrator Workflow
 
-**See:** `.claude/docs/orchestration-workflow.md` for complete details.
+**See:** `.claude/config/orchestration-workflow.md` for complete details.
 
 ### Rule 5.0 [P0]: Six-Phase Workflow
 
@@ -73,12 +73,12 @@ Guidance for Claude Code orchestrator working in this repository.
 - **Max:** 72 chars, imperative mood, no period
 - **Forbidden:** Claude Code attribution footers
 
-**Complete spec:** `.claude/docs/git-standards.md`
+**Complete spec:** `.claude/config/git-standards.md`
 **Config:** `.claude/config/git_standards.json`
 
 ## Context Contracts
 
-**See:** `.claude/docs/context-contracts.md` for complete contracts.
+**See:** `.claude/config/context-contracts.md` for complete contracts.
 
 | Agent | Required Context |
 |-------|-----------------|
@@ -90,7 +90,7 @@ Guidance for Claude Code orchestrator working in this repository.
 
 ## Agent System
 
-**See:** `.claude/docs/agent-catalog.md` for full capabilities.
+**See:** `.claude/config/agent-catalog.md` for full capabilities.
 
 ### Project Agents (use context_provider.py)
 
@@ -148,18 +148,17 @@ Guidance for Claude Code orchestrator working in this repository.
 
 **NOTE:** All paths are relative to this repository root, resolved at runtime via npm package.
 
-- **Agent system:** `.claude/` (symlinked to `node_modules/@aaxis/claude-agents/`)
+- **Agent system:** `.claude/` (symlinked to `node_modules/@jaguilar87/gaia-ops/`)
 - **Orchestrator:** `./CLAUDE.md` (this file)
-- **Tools:** `.claude/tools/` → `node_modules/@aaxis/claude-agents/tools/`
+- **Tools:** `.claude/tools/` → `node_modules/@jaguilar87/gaia-ops/tools/`
 - **Logs:** `.claude/logs/` (project-specific, NOT symlinked)
 - **Tests:** `.claude/tests/` (project-specific, NOT symlinked)
 - **Project SSOT:** `.claude/project-context.json` (project-specific, NOT symlinked)
 
 ## References
 
-- **Orchestration workflow:** `.claude/docs/orchestration-workflow.md`
-- **Git standards:** `.claude/docs/git-standards.md`
-- **Context contracts:** `.claude/docs/context-contracts.md`
-- **Agent catalog:** `.claude/docs/agent-catalog.md`
-- **Code examples:** `.claude/templates/code-examples/`
-- **Package source:** `@aaxis/claude-agents` (npm package)
+- **Orchestration workflow:** `.claude/config/orchestration-workflow.md`
+- **Git standards:** `.claude/config/git-standards.md`
+- **Context contracts:** `.claude/config/context-contracts.md`
+- **Agent catalog:** `.claude/config/agent-catalog.md`
+- **Package source:** `@jaguilar87/gaia-ops` (npm package)

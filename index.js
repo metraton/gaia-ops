@@ -1,12 +1,13 @@
 /**
- * @aaxis/claude-agents
+ * @jaguilar87/gaia-ops
  *
- * Shared Claude Code agent system for Aaxis DevOps workflows
+ * Multi-agent orchestration system for Claude Code - DevOps automation toolkit
  *
  * Usage:
- *   import { getAgentPath, getToolPath } from '@aaxis/claude-agents';
+ *   import { getAgentPath, getToolPath, getConfigPath } from '@jaguilar87/gaia-ops';
  *   const agentPath = getAgentPath('gitops-operator');
  *   const toolPath = getToolPath('context_provider.py');
+ *   const configPath = getConfigPath('orchestration-workflow.md');
  */
 
 import { fileURLToPath } from 'url';

@@ -14,6 +14,7 @@ Sistema de orquestación multi-agente para Claude Code - Toolkit de automatizaci
 
 ### Características
 
+- **Soporte multi-cloud** - Funciona con GCP, AWS, y listo para Azure
 - **6 agentes especialistas** (terraform-architect, gitops-operator, gcp-troubleshooter, aws-troubleshooter, devops-developer, claude-architect)
 - **3 meta-agentes** (Explore, Plan, claude-architect)
 - **Motor de clarificación** para detección de ambigüedades
@@ -181,7 +182,7 @@ Este paquete sigue [Versionamiento Semántico](https://semver.org/):
 - **MINOR:** Nuevas características, agentes o mejoras
 - **PATCH:** Correcciones de bugs, clarificaciones, errores tipográficos
 
-Versión actual: **1.0.3**
+Versión actual: **2.1.0**
 
 Ver [CHANGELOG.md](./CHANGELOG.md) para el historial de versiones.
 

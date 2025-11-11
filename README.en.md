@@ -14,6 +14,7 @@ Multi-agent orchestration system for Claude Code - DevOps automation toolkit.
 
 ### Features
 
+- **Multi-cloud support** - Works with GCP, AWS, and ready for Azure
 - **6 specialist agents** (terraform-architect, gitops-operator, gcp-troubleshooter, aws-troubleshooter, devops-developer, claude-architect)
 - **3 meta-agents** (Explore, Plan, claude-architect)
 - **Clarification engine** for ambiguity detection
@@ -160,17 +161,17 @@ If you need to programmatically access paths in the package:
 import {
   getAgentPath,
   getToolPath,
-  getDocPath
-} from '@aaxis/claude-agents';
+  getConfigPath
+} from '@jaguilar87/gaia-ops';
 
 const agentPath = getAgentPath('gitops-operator');
-// → /path/to/node_modules/@aaxis/claude-agents/agents/gitops-operator.md
+// → /path/to/node_modules/@jaguilar87/gaia-ops/agents/gitops-operator.md
 
 const toolPath = getToolPath('context_provider.py');
-// → /path/to/node_modules/@aaxis/claude-agents/tools/context_provider.py
+// → /path/to/node_modules/@jaguilar87/gaia-ops/tools/context_provider.py
 
-const docPath = getDocPath('orchestration-workflow.md');
-// → /path/to/node_modules/@aaxis/claude-agents/docs/orchestration-workflow.md
+const configPath = getConfigPath('orchestration-workflow.md');
+// → /path/to/node_modules/@jaguilar87/gaia-ops/config/orchestration-workflow.md
 ```
 
 ## Versioning

@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.0] - 2025-11-10
+
+### Added - Unified Settings Template & Auto-Installation
+- **NEW:** Created unified `templates/settings.template.json` (214 lines)
+  - Merged functionality from `settings.json` + `settings.local.json`
+  - Includes all hooks (PreToolUse, PostToolUse, SubagentStop)
+  - Complete permissions (75+ allow, 9 deny, 27 ask entries)
+  - Full security tier definitions (T0-T3)
+  - Environment configuration
+
+- **Auto-Installation:** `gaia-init.js` now automatically generates `.claude/settings.json`
+  - Added `generateSettingsJson()` function
+  - Integrated into installation workflow (Step 6.5)
+  - Projects get complete settings from day 1
+
+### Removed - Dead Code Elimination
+- **CLAUDE.md** from package root (only template exists now)
+- **templates/code-examples/** (321 lines - never imported or executed)
+  - `commit_validation.py`
+  - `clarification_workflow.py`
+  - `approval_gate_workflow.py`
+- **templates/project-context.template.json** (126 lines - unused, installer generates programmatically)
+- **templates/project-context.template.aws.json** (128 lines - never used)
+- **package.json:** Removed `CLAUDE.md` from files array
+
+### Changed - Package Consistency
+- **templates/CLAUDE.template.md:**
+  - Updated all references: `.claude/docs/` → `.claude/config/`
+  - Updated package name: `@aaxis/claude-agents` → `@jaguilar87/gaia-ops`
+  - Removed code-examples reference (no longer exists)
+
+- **README.en.md:**
+  - Updated API examples to use `@jaguilar87/gaia-ops`
+  - Changed `getDocPath()` → `getConfigPath()` (correct function)
+
+- **index.js:**
+  - Updated header and JSDoc comments with new package name
+  - Updated example usage
+
+- **agents/claude-architect.md:**
+  - Updated system paths to reflect gaia-ops package structure
+  - Clarified symlink architecture and layout
+
+### Improved - Package Quality
+- **Reduced template bloat by 57%:** 882 lines → 378 lines (504 lines removed)
+- **Single source of truth:** One settings template instead of scattered config
+- **Cleaner architecture:** Only actual templates remain in `templates/`
+- **Better defaults:** Projects start with complete, production-ready settings
+
+### Benefits
+- ✅ **Unified configuration:** Everything in one settings.json file
+- ✅ **Automatic setup:** No manual settings configuration needed
+- ✅ **Smaller package:** 57% reduction in template code
+- ✅ **Flexibility maintained:** Users can still create `settings.local.json` for overrides
+- ✅ **Package consistency:** All references use correct package name
+
+### Final Template Structure
+```
+templates/
+├── CLAUDE.template.md         (164 lines) - Orchestrator instructions
+└── settings.template.json     (214 lines) - Complete Claude Code settings
+```
+
+---
+
 ## [2.1.0] - 2025-11-10
 
 ### Added - Provider-Specific Context Contracts

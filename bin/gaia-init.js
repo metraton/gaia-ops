@@ -604,6 +604,29 @@ async function createClaudeDirectory() {
 }
 
 /**
+ * Generate settings.json from template
+ */
+async function generateSettingsJson() {
+  const spinner = ora('Generating .claude/settings.json...').start();
+
+  try {
+    const settingsPath = join(CWD, '.claude', 'settings.json');
+    const templatePath = getTemplatePath('settings.template.json');
+
+    // Read template
+    const template = await fs.readFile(templatePath, 'utf-8');
+
+    // Write settings.json (no placeholders to replace)
+    await fs.writeFile(settingsPath, template, 'utf-8');
+
+    spinner.succeed('.claude/settings.json generated');
+  } catch (error) {
+    spinner.fail('Failed to generate settings.json');
+    throw error;
+  }
+}
+
+/**
  * Generate CLAUDE.md from template
  */
 async function generateClaudeMd(config) {
@@ -999,6 +1022,9 @@ async function main() {
 
     // Step 6: Create .claude/ directory with symlinks
     await createClaudeDirectory();
+
+    // Step 6.5: Generate settings.json
+    await generateSettingsJson();
 
     // Step 7: Generate CLAUDE.md
     await generateClaudeMd(config);
