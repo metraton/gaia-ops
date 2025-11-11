@@ -36,6 +36,7 @@
     "speckit/",
     "CLAUDE.md",
     "CHANGELOG.md",
+    "README.en.md",
     "index.js"
   ],
   "scripts": {

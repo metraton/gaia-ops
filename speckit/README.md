@@ -1,5 +1,7 @@
 # Spec-Kit 2.0 - Framework de Desarrollo de Features Estructurado
 
+**[🇺🇸 English version](README.en.md)**
+
 Framework simplificado para desarrollo dirigido por especificaciones con orchestración inteligente de agentes.
 
 ## 🎯 Visión General

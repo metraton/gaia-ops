@@ -1,56 +1,58 @@
 # @jaguilar87/gaia-ops
 
-Multi-agent orchestration system for Claude Code - DevOps automation toolkit.
+**[🇺🇸 English version](README.en.md)**
 
-## Overview
+Sistema de orquestación multi-agente para Claude Code - Toolkit de automatización DevOps.
 
-**Gaia-Ops** provides a complete agent orchestration system for Claude Code, enabling intelligent automation of DevOps workflows through specialized AI agents.
+## Descripción General
 
-### Features
+**Gaia-Ops** proporciona un sistema completo de orquestación de agentes para Claude Code, habilitando automatización inteligente de workflows DevOps a través de agentes IA especializados.
 
-- **6 specialist agents** (terraform-architect, gitops-operator, gcp-troubleshooter, aws-troubleshooter, devops-developer, claude-architect)
-- **3 meta-agents** (Explore, Plan, claude-architect)
-- **Clarification engine** for ambiguity detection
-- **Approval gates** for T3 operations (terraform apply, kubectl apply, etc.)
-- **Git commit validation** with Conventional Commits
-- **Context provisioning** system for intelligent agent routing
-- **Complete documentation** (orchestration workflow, git standards, agent catalog)
+### Características
 
-## Installation
+- **6 agentes especialistas** (terraform-architect, gitops-operator, gcp-troubleshooter, aws-troubleshooter, devops-developer, claude-architect)
+- **3 meta-agentes** (Explore, Plan, claude-architect)
+- **Motor de clarificación** para detección de ambigüedades
+- **Puertas de aprobación** para operaciones T3 (terraform apply, kubectl apply, etc.)
+- **Validación de commits Git** con Conventional Commits
+- **Sistema de provisión de contexto** para ruteo inteligente de agentes
+- **Documentación completa** (workflow de orquestación, estándares git, catálogo de agentes)
 
-### Quick Start (Recommended)
+## Instalación
 
-Use the built-in interactive installer to set up Gaia-Ops in any project:
+### Inicio Rápido (Recomendado)
+
+Usa el instalador interactivo integrado para configurar Gaia-Ops en cualquier proyecto:
 
 ```bash
 npx @jaguilar87/gaia-ops init
 ```
 
-Or if installed globally:
+O si lo instalas globalmente:
 
 ```bash
 npm install -g @jaguilar87/gaia-ops
 gaia-init
 ```
 
-This will:
-1. Auto-detect your project structure (GitOps, Terraform, AppServices)
-2. Ask you a few questions about your project
-3. Install Claude Code if not present
-4. Create `.claude/` directory with symlinks to this package
-5. Generate `CLAUDE.md` with correct paths
-6. Generate `AGENTS.md` symlink
-7. Create `project-context.json` with your configuration
+Esto hará:
+1. Auto-detectar tu estructura de proyecto (GitOps, Terraform, AppServices)
+2. Hacerte algunas preguntas sobre tu proyecto
+3. Instalar Claude Code si no está presente
+4. Crear directorio `.claude/` con symlinks a este paquete
+5. Generar `CLAUDE.md` con las rutas correctas
+6. Generar symlink `AGENTS.md`
+7. Crear `project-context.json` con tu configuración
 
-### Manual Installation
+### Instalación Manual
 
-If you prefer manual setup:
+Si prefieres configuración manual:
 
 ```bash
 npm install @jaguilar87/gaia-ops
 ```
 
-Then create symlinks:
+Luego crea los symlinks:
 
 ```bash
 mkdir -p .claude
@@ -64,28 +66,28 @@ ln -s ../node_modules/@jaguilar87/gaia-ops/config config
 ln -s ../node_modules/@jaguilar87/gaia-ops/CHANGELOG.md CHANGELOG.md
 ```
 
-## Usage
+## Uso
 
-Once installed, the agent system is ready to use with Claude Code:
+Una vez instalado, el sistema de agentes está listo para usar con Claude Code:
 
 ```bash
 claude-code
 ```
 
-Claude Code will automatically load `CLAUDE.md` and have access to all agents via the `.claude/` directory.
+Claude Code cargará automáticamente `CLAUDE.md` y tendrá acceso a todos los agentes vía el directorio `.claude/`.
 
-## Project Structure
+## Estructura del Proyecto
 
 ```
 node_modules/@jaguilar87/gaia-ops/
-├── agents/              # Agent definitions
+├── agents/              # Definiciones de agentes
 │   ├── terraform-architect.md
 │   ├── gitops-operator.md
 │   ├── gcp-troubleshooter.md
 │   ├── aws-troubleshooter.md
 │   ├── devops-developer.md
 │   └── claude-architect.md
-├── tools/               # Orchestration tools
+├── tools/               # Herramientas de orquestación
 │   ├── context_provider.py
 │   ├── agent_router.py
 │   ├── clarify_engine.py
@@ -94,128 +96,127 @@ node_modules/@jaguilar87/gaia-ops/
 │   └── task_manager.py
 ├── hooks/               # Git hooks
 │   └── pre-commit
-├── commands/            # Slash commands
+├── commands/            # Comandos slash
 │   ├── architect.md
 │   └── speckit.*.md
-├── config/              # Configuration & documentation
+├── config/              # Configuración y documentación
 │   ├── AGENTS.md
 │   ├── orchestration-workflow.md
 │   ├── git-standards.md
 │   ├── context-contracts.md
 │   ├── agent-catalog.md
 │   └── git_standards.json
-├── templates/           # Code templates
+├── templates/           # Plantillas de código
 │   ├── CLAUDE.template.md
 │   └── code-examples/
 │       ├── commit_validation.py
 │       ├── clarification_workflow.py
 │       └── approval_gate_workflow.py
-├── config/              # Configuration
+├── config/              # Configuración
 │   └── git_standards.json
-├── CLAUDE.md            # Core orchestrator instructions
-├── AGENTS.md            # System overview
-├── CHANGELOG.md         # Version history
+├── CLAUDE.md            # Instrucciones del orquestador principal
+├── AGENTS.md            # Vista general del sistema
+├── CHANGELOG.md         # Historial de versiones
 ├── package.json
-└── index.js             # Helper functions
+└── index.js             # Funciones auxiliares
 ```
 
-## Your Project Structure
+## Estructura de Tu Proyecto
 
-After installation:
+Después de la instalación:
 
 ```
-your-project/
-├── .claude/                 # Symlinked to node_modules/@aaxis/claude-agents/
-│   ├── agents/              → node_modules/@aaxis/claude-agents/agents/
-│   ├── tools/               → node_modules/@aaxis/claude-agents/tools/
-│   ├── hooks/               → node_modules/@aaxis/claude-agents/hooks/
-│   ├── commands/            → node_modules/@aaxis/claude-agents/commands/
-│   ├── docs/                → node_modules/@aaxis/claude-agents/docs/
-│   ├── templates/           → node_modules/@aaxis/claude-agents/templates/
-│   ├── config/              → node_modules/@aaxis/claude-agents/config/
-│   ├── CHANGELOG.md         → node_modules/@aaxis/claude-agents/CHANGELOG.md
-│   ├── logs/                # Project-specific (NOT symlinked)
-│   ├── tests/               # Project-specific (NOT symlinked)
-│   └── project-context.json # Project-specific (NOT symlinked)
-├── CLAUDE.md                # Generated from template
-├── AGENTS.md                → node_modules/@aaxis/claude-agents/AGENTS.md
-├── gitops/                  # Your GitOps manifests
-├── terraform/               # Your Terraform code
-├── app-services/            # Your application code
+tu-proyecto/
+├── .claude/                 # Symlinks a node_modules/@jaguilar87/gaia-ops/
+│   ├── agents/              → node_modules/@jaguilar87/gaia-ops/agents/
+│   ├── tools/               → node_modules/@jaguilar87/gaia-ops/tools/
+│   ├── hooks/               → node_modules/@jaguilar87/gaia-ops/hooks/
+│   ├── commands/            → node_modules/@jaguilar87/gaia-ops/commands/
+│   ├── config/              → node_modules/@jaguilar87/gaia-ops/config/
+│   ├── templates/           → node_modules/@jaguilar87/gaia-ops/templates/
+│   ├── CHANGELOG.md         → node_modules/@jaguilar87/gaia-ops/CHANGELOG.md
+│   ├── logs/                # Específico del proyecto (NO symlink)
+│   ├── tests/               # Específico del proyecto (NO symlink)
+│   └── project-context.json # Específico del proyecto (NO symlink)
+├── CLAUDE.md                # Generado desde template
+├── AGENTS.md                → node_modules/@jaguilar87/gaia-ops/AGENTS.md
+├── gitops/                  # Tus manifiestos GitOps
+├── terraform/               # Tu código Terraform
+├── app-services/            # Tu código de aplicación
 ├── node_modules/
-│   └── @aaxis/
-│       └── claude-agents/   # This package
+│   └── @jaguilar87/
+│       └── gaia-ops/        # Este paquete
 └── package.json
 ```
 
 ## API
 
-If you need to programmatically access paths in the package:
+Si necesitas acceder a las rutas del paquete programáticamente:
 
 ```javascript
 import {
   getAgentPath,
   getToolPath,
-  getDocPath
-} from '@aaxis/claude-agents';
+  getConfigPath
+} from '@jaguilar87/gaia-ops';
 
 const agentPath = getAgentPath('gitops-operator');
-// → /path/to/node_modules/@aaxis/claude-agents/agents/gitops-operator.md
+// → /path/to/node_modules/@jaguilar87/gaia-ops/agents/gitops-operator.md
 
 const toolPath = getToolPath('context_provider.py');
-// → /path/to/node_modules/@aaxis/claude-agents/tools/context_provider.py
+// → /path/to/node_modules/@jaguilar87/gaia-ops/tools/context_provider.py
 
-const docPath = getDocPath('orchestration-workflow.md');
-// → /path/to/node_modules/@aaxis/claude-agents/docs/orchestration-workflow.md
+const configPath = getConfigPath('orchestration-workflow.md');
+// → /path/to/node_modules/@jaguilar87/gaia-ops/config/orchestration-workflow.md
 ```
 
-## Versioning
+## Versionamiento
 
-This package follows [Semantic Versioning](https://semver.org/):
+Este paquete sigue [Versionamiento Semántico](https://semver.org/):
 
-- **MAJOR:** Breaking changes to orchestrator behavior
-- **MINOR:** New features, agents, or improvements
-- **PATCH:** Bug fixes, clarifications, typos
+- **MAJOR:** Cambios que rompen compatibilidad en el comportamiento del orquestador
+- **MINOR:** Nuevas características, agentes o mejoras
+- **PATCH:** Correcciones de bugs, clarificaciones, errores tipográficos
 
-Current version: **2.1.0**
+Versión actual: **1.0.3**
 
-See [CHANGELOG.md](./CHANGELOG.md) for version history.
+Ver [CHANGELOG.md](./CHANGELOG.md) para el historial de versiones.
 
-## Documentation
+## Documentación
 
-- **Core Instructions:** [CLAUDE.md](./CLAUDE.md) (154 lines)
-- **System Overview:** [AGENTS.md](./AGENTS.md) (95 lines)
-- **Orchestration Workflow:** [docs/orchestration-workflow.md](./docs/orchestration-workflow.md) (735 lines)
-- **Git Standards:** [docs/git-standards.md](./docs/git-standards.md) (682 lines)
-- **Context Contracts:** [docs/context-contracts.md](./docs/context-contracts.md) (673 lines)
-- **Agent Catalog:** [docs/agent-catalog.md](./docs/agent-catalog.md) (603 lines)
+- **Instrucciones Principales:** [CLAUDE.md](./CLAUDE.md) (154 líneas)
+- **Vista General del Sistema:** [config/AGENTS.md](./config/AGENTS.md) (95 líneas)
+- **Workflow de Orquestación:** [config/orchestration-workflow.md](./config/orchestration-workflow.md) (735 líneas)
+- **Estándares Git:** [config/git-standards.md](./config/git-standards.md) (682 líneas)
+- **Contratos de Contexto:** [config/context-contracts.md](./config/context-contracts.md) (673 líneas)
+- **Catálogo de Agentes:** [config/agent-catalog.md](./config/agent-catalog.md) (603 líneas)
 
-## Requirements
+## Requisitos
 
 - **Node.js:** >=18.0.0
 - **Python:** >=3.9
-- **Claude Code:** Latest version
+- **Claude Code:** Última versión
 - **Git:** >=2.30
 
-## Project Context Management
+## Gestión de Contexto de Proyecto
 
-Gaia-Ops uses a versioned project context for SSOT. After installation, clone your project context:
+Gaia-Ops usa un contexto de proyecto versionado como SSOT. Después de la instalación, clona tu contexto de proyecto:
 
 ```bash
 cd .claude
-git clone git@bitbucket.org:yourorg/your-project-context.git project-context
+git clone git@bitbucket.org:tuorg/tu-project-context.git project-context
 ```
 
-This keeps `project-context.json` versioned separately, while `session/` data remains local.
+Esto mantiene `project-context.json` versionado separadamente, mientras los datos de `session/` permanecen locales.
 
-See [rnd-project-context](https://bitbucket.org/aaxisdigital/rnd-project-context) for an example.
+Ver [rnd-project-context](https://bitbucket.org/aaxisdigital/rnd-project-context) como ejemplo.
 
-## Support
+## Soporte
 
 - **Issues:** [GitHub Issues](https://github.com/metraton/gaia-ops/issues)
-- **Repository:** [github.com/metraton/gaia-ops](https://github.com/metraton/gaia-ops)
-- **Author:** Jorge Aguilar <jaguilar1897@gmail.com>
+- **Repositorio:** [github.com/metraton/gaia-ops](https://github.com/metraton/gaia-ops)
+- **Autor:** Jorge Aguilar <jaguilar1897@gmail.com>
 
-## License
+## Licencia
 
-MIT License - See [LICENSE](./LICENSE) for details.
+MIT License - Ver [LICENSE](./LICENSE) para detalles.
