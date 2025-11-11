@@ -37,7 +37,7 @@
  */
 
 import { fileURLToPath } from 'url';
-import { dirname, join, relative } from 'path';
+import { dirname, join, relative, resolve, isAbsolute } from 'path';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import { exec } from 'child_process';
