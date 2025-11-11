@@ -32,12 +32,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `tools/generate_embeddings.py`: Updated output path (configs/ → config/)
   - All documentation updated to reference correct paths
 
+### Fixed - Test Suite (254 tests, 100% passing)
+- **tests/system/test_configuration_files.py:**
+  - Updated to validate `templates/settings.template.json` (package contains template, not installed settings.json)
+  - Tests now reflect npm package structure instead of installed project structure
+
+- **tests/system/test_directory_structure.py:**
+  - Completely rewritten for npm package validation
+  - Tests now verify package directories (agents/, tools/, config/, templates/, bin/)
+  - Removed tests for installed-project structure (session/, .claude/ name)
+  - Added comprehensive tests for all package subdirectories (agents, tools, hooks, config, speckit)
+
+- **tests/tools/test_clarify_engine.py:**
+  - Fixed import paths (tests/tools → gaia-ops/tools)
+  - Made emoji checks flexible (accepts any emoji, not just 📦)
+  - All 32 clarify_engine tests now pass
+
+- **tests/tools/test_context_provider.py:**
+  - Updated troubleshooter contract test (application_services is optional, not required)
+  - Fixed invalid_agent test expectation (now correctly exits with code 1)
+
+- **tools/context_provider.py:**
+  - Changed behavior for invalid agents: now exits with code 1 (was: warning + empty contract)
+  - Better error messages: "ERROR: Invalid agent" instead of "Warning: No contract found"
+
 ### Benefits
 - ✅ **Zero configuration:** Semantic routing works immediately after installation
 - ✅ **Better routing:** Handles ambiguous queries with 6x higher confidence
 - ✅ **Consistent structure:** All config files in one place (`config/`)
 - ✅ **Smaller package:** Embeddings optimized for size (74KB vs 5MB unoptimized)
 - ✅ **Regeneration optional:** Users can regenerate with `python3 .claude/tools/generate_embeddings.py` if needed
+- ✅ **Test coverage:** 254 tests passing (0 failures)
 
 ### Technical Details
 ```

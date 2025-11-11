@@ -39,6 +39,7 @@
     "templates/",
     "config/",
     "speckit/",
+    "tests/",
     "CHANGELOG.md",
     "README.en.md",
     "index.js"

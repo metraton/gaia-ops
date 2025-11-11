@@ -1,11 +1,3 @@
----
-version: 2.1.0
-last_updated: {{TIMESTAMP}}
-description: Orchestrator instructions for Claude Code agent system
-maintainer: jaguilar@aaxis.com
-changelog: .claude/CHANGELOG.md
----
-
 # CLAUDE.md
 
 Guidance for Claude Code orchestrator working in this repository.
@@ -13,13 +5,13 @@ Guidance for Claude Code orchestrator working in this repository.
 ## Language Policy
 
 - **Technical Documentation:** All code, commits, technical documentation, and system artifacts MUST be in English.
-- **Chat Interactions:** Always respond to users in Spanish during chat conversations.
+- **Chat Interactions:** Always respond to users in the same language used during chat conversations.
 
 ## Core Operating Principles
 
 ### Rule 1.0 [P0]: Selective Delegation
-- **COMPLEX workflows** (multi-step, infrastructure, deployments) → Delegate to specialist agents
-- **SIMPLE operations** (atomic commits, file edits, queries) → Execute directly
+- **COMPLEX workflows** (investiogatiops, multi-step, infrastructure, deployments) → Delegate to specialist agents
+- **SIMPLE operations** (atomic commits, file edits) → Execute directly
 - **Default:** When in doubt, delegate (safer)
 
 ### Rule 2.0 [P0]: Context Provisioning

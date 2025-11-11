@@ -296,10 +296,10 @@ def get_contract_context(
         agent_contract = provider_contracts["agents"].get(agent_name)
         if not agent_contract:
             print(
-                f"Warning: No contract found for agent '{agent_name}' in provider contracts. Returning empty contract.",
+                f"ERROR: Invalid agent '{agent_name}'. Agent not found in provider contracts.",
                 file=sys.stderr,
             )
-            return {}
+            sys.exit(1)
 
         contract_keys = agent_contract.get("required", [])
     else:
@@ -307,10 +307,10 @@ def get_contract_context(
         contract_keys = LEGACY_AGENT_CONTRACTS.get(agent_name)
         if not contract_keys:
             print(
-                f"Warning: No contract found for agent '{agent_name}'. Returning empty contract.",
+                f"ERROR: Invalid agent '{agent_name}'. Agent not recognized.",
                 file=sys.stderr,
             )
-            return {}
+            sys.exit(1)
 
     sections = project_context.get("sections", {})
     if not sections:
