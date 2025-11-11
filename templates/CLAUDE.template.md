@@ -4,9 +4,6 @@ last_updated: {{TIMESTAMP}}
 description: Orchestrator instructions for Claude Code agent system
 maintainer: jaguilar@aaxis.com
 changelog: .claude/CHANGELOG.md
-project_id: {{PROJECT_ID}}
-region: {{REGION}}
-cluster: {{CLUSTER_NAME}}
 ---
 
 # CLAUDE.md
@@ -142,9 +139,7 @@ Guidance for Claude Code orchestrator working in this repository.
 ## Project Configuration
 
 **This project:**
-- **GCP Project ID:** {{PROJECT_ID}}
-- **Region:** {{REGION}}
-- **Cluster:** {{CLUSTER_NAME}}
+{{PROJECT_CONFIG}}
 - **GitOps Path:** {{GITOPS_PATH}}
 - **Terraform Path:** {{TERRAFORM_PATH}}
 - **App Services Path:** {{APP_SERVICES_PATH}}

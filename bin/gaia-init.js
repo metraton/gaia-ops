@@ -306,22 +306,39 @@ async function runInteractiveWizard(detected) {
       validate: value => value.trim().length > 0
     },
     {
-      type: 'text',
-      name: 'projectId',
+      type: 'select',
+      name: 'cloudProvider',
+      message: '☁️  Cloud provider:',
+      choices: [
+        { title: 'GCP (Google Cloud Platform)', value: 'gcp' },
+        { title: 'AWS (Amazon Web Services)', value: 'aws' },
+        { title: 'Multi-cloud (AWS + GCP)', value: 'multi-cloud' }
+      ],
+      initial: 0
+    },
+    {
+      type: (prev, values) => ['gcp', 'multi-cloud'].includes(values.cloudProvider) ? 'text' : null,
+      name: 'gcpProjectId',
       message: '🌐 GCP Project ID (e.g., aaxis-rnd-non-prod):',
+      validate: value => value.trim().length > 0
+    },
+    {
+      type: (prev, values) => ['aws', 'multi-cloud'].includes(values.cloudProvider) ? 'text' : null,
+      name: 'awsAccountId',
+      message: '🌐 AWS Account ID (e.g., 929914624686):',
       validate: value => value.trim().length > 0
     },
     {
       type: 'text',
       name: 'region',
-      message: '🌍 Primary Region (e.g., us-central1):',
+      message: '🌍 Primary Region (e.g., us-central1 for GCP, us-east-1 for AWS):',
       initial: 'us-central1',
       validate: value => value.trim().length > 0
     },
     {
       type: 'text',
       name: 'clusterName',
-      message: '☸️  Cluster Name (e.g., non-prod-rnd-gke):',
+      message: '☸️  Cluster Name (e.g., rnd-gke-nonprod or digital-eks-prod):',
       validate: value => value.trim().length > 0
     },
     {
@@ -430,10 +447,34 @@ async function generateClaudeMd(config) {
     const templatePath = getTemplatePath('CLAUDE.template.md');
     let template = await fs.readFile(templatePath, 'utf-8');
 
+    // Build project configuration section based on cloud provider
+    let projectConfig = '';
+
+    if (config.cloudProvider === 'gcp') {
+      projectConfig = `- **Cloud Provider:** GCP
+- **GCP Project ID:** ${config.gcpProjectId}
+- **Region:** ${config.region}
+- **Cluster:** ${config.clusterName}`;
+    } else if (config.cloudProvider === 'aws') {
+      projectConfig = `- **Cloud Provider:** AWS
+- **AWS Account ID:** ${config.awsAccountId}
+- **Region:** ${config.region}
+- **Cluster:** ${config.clusterName}`;
+    } else if (config.cloudProvider === 'multi-cloud') {
+      projectConfig = `- **Cloud Provider:** Multi-cloud (AWS + GCP)`;
+      if (config.gcpProjectId) {
+        projectConfig += `\n- **GCP Project ID:** ${config.gcpProjectId}`;
+      }
+      if (config.awsAccountId) {
+        projectConfig += `\n- **AWS Account ID:** ${config.awsAccountId}`;
+      }
+      projectConfig += `\n- **Primary Region:** ${config.region}
+- **Cluster:** ${config.clusterName}`;
+    }
+
     // Replace placeholders
-    template = template.replace(/{{PROJECT_ID}}/g, config.projectId);
-    template = template.replace(/{{REGION}}/g, config.region);
-    template = template.replace(/{{CLUSTER_NAME}}/g, config.clusterName);
+    template = template.replace(/{{TIMESTAMP}}/g, new Date().toISOString().split('T')[0]);
+    template = template.replace(/{{PROJECT_CONFIG}}/g, projectConfig);
     template = template.replace(/{{GITOPS_PATH}}/g, config.gitops);
     template = template.replace(/{{TERRAFORM_PATH}}/g, config.terraform);
     template = template.replace(/{{APP_SERVICES_PATH}}/g, config.appServices);
@@ -533,54 +574,92 @@ async function generateProjectContext(config) {
   const spinner = ora('Generating project-context.json...').start();
 
   try {
+    // Build metadata section based on cloud provider
+    const metadata = {
+      version: '1.0',
+      last_updated: new Date().toISOString(),
+      project_root: '.',  // Reference point: where CLAUDE.md is located
+      created_by: 'gaia-init',
+      cloud_provider: config.cloudProvider,
+      environment: 'non-prod',
+      primary_region: config.region
+    };
+
+    // Add cloud-specific metadata
+    if (config.cloudProvider === 'gcp') {
+      metadata.project_id = config.gcpProjectId;
+    } else if (config.cloudProvider === 'aws') {
+      metadata.aws_account = config.awsAccountId;
+    } else if (config.cloudProvider === 'multi-cloud') {
+      if (config.gcpProjectId) metadata.project_id = config.gcpProjectId;
+      if (config.awsAccountId) metadata.aws_account = config.awsAccountId;
+    }
+
+    // Build project_details section
+    const projectDetails = {
+      region: config.region,
+      environment: 'non-prod',
+      cluster_name: config.clusterName,
+      cloud_provider: config.cloudProvider
+    };
+
+    if (config.gcpProjectId) {
+      projectDetails.project_id = config.gcpProjectId;
+    }
+    if (config.awsAccountId) {
+      projectDetails.aws_account = config.awsAccountId;
+    }
+
+    // Build provider_credentials section
+    const providerCredentials = {};
+    if (config.gcpProjectId) {
+      providerCredentials.gcp = {
+        project: config.gcpProjectId,
+        region: config.region
+      };
+    }
+    if (config.awsAccountId) {
+      providerCredentials.aws = {
+        account_id: config.awsAccountId,
+        region: config.region
+      };
+    }
+
     const projectContext = {
-      metadata: {
-        version: '1.0',
-        last_updated: new Date().toISOString(),
-        project_root: '.',  // Reference point: where CLAUDE.md is located
-        created_by: 'gaia-init'
-      },
+      metadata,
       paths: {
         gitops: config.gitops,
         terraform: config.terraform,
         app_services: config.appServices
       },
-      project_details: {
-        id: config.projectId,
-        region: config.region,
-        environment: 'non-prod',
-        cluster_name: config.clusterName
-      },
-      terraform_infrastructure: {
-        layout: {
-          base_path: config.terraform,
-          module_structure: 'terragrunt'
+      sections: {
+        project_details: projectDetails,
+        terraform_infrastructure: {
+          layout: {
+            base_path: config.terraform,
+            module_structure: 'terragrunt'
+          },
+          provider_credentials: providerCredentials
         },
-        provider_credentials: {
-          gcp: {
-            project: config.projectId,
-            region: config.region
+        gitops_configuration: {
+          repository: {
+            path: config.gitops,
+            platform: 'flux'
+          },
+          flux_details: {
+            namespaces: []
           }
-        }
-      },
-      gitops_configuration: {
-        repository: {
-          path: config.gitops,
-          platform: 'flux'
         },
-        flux_details: {
-          namespaces: []
-        }
-      },
-      application_services: {
-        base_path: config.appServices,
-        services: []
-      },
-      operational_guidelines: {
-        commit_standards: {
-          format: 'conventional_commits',
-          validation_required: true,
-          config_path: '.claude/config/git_standards.json'
+        application_services: {
+          base_path: config.appServices,
+          services: []
+        },
+        operational_guidelines: {
+          commit_standards: {
+            format: 'conventional_commits',
+            validation_required: true,
+            config_path: '.claude/config/git_standards.json'
+          }
         }
       }
     };
