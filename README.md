@@ -1,5 +1,9 @@
 # @jaguilar87/gaia-ops
 
+[![npm version](https://badge.fury.io/js/@jaguilar87%2Fgaia-ops.svg)](https://www.npmjs.com/package/@jaguilar87/gaia-ops)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/node/v/@jaguilar87/gaia-ops.svg)](https://nodejs.org)
+
 **[🇺🇸 English version](README.en.md)**
 
 Sistema de orquestación multi-agente para Claude Code - Toolkit de automatización DevOps.
@@ -139,7 +143,6 @@ tu-proyecto/
 │   ├── tests/               # Específico del proyecto (NO symlink)
 │   └── project-context.json # Específico del proyecto (NO symlink)
 ├── CLAUDE.md                # Generado desde template
-├── AGENTS.md                → node_modules/@jaguilar87/gaia-ops/AGENTS.md
 ├── gitops/                  # Tus manifiestos GitOps
 ├── terraform/               # Tu código Terraform
 ├── app-services/            # Tu código de aplicación

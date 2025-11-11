@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.4] - 2025-11-10
+
+### Fixed
+- **Installer:** Removed incorrect AGENTS.md symlink creation in project root during installation
+- **Documentation:** AGENTS.md now only accessible via `.claude/config/AGENTS.md` as intended
+- **Package Quality:** Excluded Python cache files (`__pycache__/`) from published package
+
+### Changed
+- **README.md:** Updated project structure documentation to reflect correct AGENTS.md location
+- **README.en.md:** Updated project structure and corrected package references
+- **Package Size:** Reduced from 911.7 kB (93 files) to 660.7 kB (77 files) - 27% reduction
+
+### Added
+- **Package Metadata:** Added `homepage` and `bugs` fields to package.json for better npm discovery
+- **Badges:** Added npm version, license, and Node.js version badges to README files
+- **CI/CD:** Created GitHub Actions workflow for automated npm publishing
+- **.npmignore:** Added file to exclude development artifacts from package
+- **Cleanup Script:** Added `npm run clean` to remove Python cache files automatically
+- **Pre-publish Hook:** Added `prepublishOnly` script for automatic cleanup before publishing
+
+### Package Quality Improvements
+- Better npm package metadata for discoverability
+- Professional badges in documentation
+- Automated publishing workflow
+- Cleaner package distribution (no cache files)
+- Improved documentation consistency
+
+---
+
 ## [2.1.0] - 2025-11-07
 
 ### Changed

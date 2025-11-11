@@ -25,6 +25,11 @@
     "type": "git",
     "url": "git+https://github.com/metraton/gaia-ops.git"
   },
+  "homepage": "https://github.com/metraton/gaia-ops#readme",
+  "bugs": {
+    "url": "https://github.com/metraton/gaia-ops/issues",
+    "email": "jaguilar1897@gmail.com"
+  },
   "files": [
     "bin/",
     "agents/",
@@ -42,7 +47,9 @@
   "scripts": {
     "test": "pytest tests/ -v",
     "validate": "python3 tools/commit_validator.py",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "clean": "find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true",
+    "prepublishOnly": "npm run clean"
   },
   "dependencies": {
     "prompts": "^2.4.2",

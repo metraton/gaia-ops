@@ -1,5 +1,9 @@
 # @jaguilar87/gaia-ops
 
+[![npm version](https://badge.fury.io/js/@jaguilar87%2Fgaia-ops.svg)](https://www.npmjs.com/package/@jaguilar87/gaia-ops)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/node/v/@jaguilar87/gaia-ops.svg)](https://nodejs.org)
+
 **[🇪🇸 Versión en español](README.md)**
 
 Multi-agent orchestration system for Claude Code - DevOps automation toolkit.
@@ -127,26 +131,24 @@ After installation:
 
 ```
 your-project/
-├── .claude/                 # Symlinked to node_modules/@aaxis/claude-agents/
-│   ├── agents/              → node_modules/@aaxis/claude-agents/agents/
-│   ├── tools/               → node_modules/@aaxis/claude-agents/tools/
-│   ├── hooks/               → node_modules/@aaxis/claude-agents/hooks/
-│   ├── commands/            → node_modules/@aaxis/claude-agents/commands/
-│   ├── docs/                → node_modules/@aaxis/claude-agents/docs/
-│   ├── templates/           → node_modules/@aaxis/claude-agents/templates/
-│   ├── config/              → node_modules/@aaxis/claude-agents/config/
-│   ├── CHANGELOG.md         → node_modules/@aaxis/claude-agents/CHANGELOG.md
+├── .claude/                 # Symlinked to node_modules/@jaguilar87/gaia-ops/
+│   ├── agents/              → node_modules/@jaguilar87/gaia-ops/agents/
+│   ├── tools/               → node_modules/@jaguilar87/gaia-ops/tools/
+│   ├── hooks/               → node_modules/@jaguilar87/gaia-ops/hooks/
+│   ├── commands/            → node_modules/@jaguilar87/gaia-ops/commands/
+│   ├── config/              → node_modules/@jaguilar87/gaia-ops/config/
+│   ├── templates/           → node_modules/@jaguilar87/gaia-ops/templates/
+│   ├── CHANGELOG.md         → node_modules/@jaguilar87/gaia-ops/CHANGELOG.md
 │   ├── logs/                # Project-specific (NOT symlinked)
 │   ├── tests/               # Project-specific (NOT symlinked)
 │   └── project-context.json # Project-specific (NOT symlinked)
 ├── CLAUDE.md                # Generated from template
-├── AGENTS.md                → node_modules/@aaxis/claude-agents/AGENTS.md
 ├── gitops/                  # Your GitOps manifests
 ├── terraform/               # Your Terraform code
 ├── app-services/            # Your application code
 ├── node_modules/
-│   └── @aaxis/
-│       └── claude-agents/   # This package
+│   └── @jaguilar87/
+│       └── gaia-ops/        # This package
 └── package.json
 ```
 

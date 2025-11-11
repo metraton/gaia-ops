@@ -496,27 +496,13 @@ async function generateClaudeMd(config) {
 
 /**
  * Generate AGENTS.md symlink
+ * NOTE: AGENTS.md is already available at .claude/config/AGENTS.md via the config/ symlink
+ * No need to create a separate symlink in the project root
  */
 async function generateAgentsMd() {
-  const spinner = ora('Creating AGENTS.md symlink...').start();
-
-  try {
-    const agentsMdLink = join(CWD, 'AGENTS.md');
-    const packagePath = join(CWD, 'node_modules', '@jaguilar87', 'gaia-ops', 'config', 'AGENTS.md');
-    const relativePath = relative(CWD, packagePath);
-
-    // Remove existing if present
-    if (existsSync(agentsMdLink)) {
-      await fs.unlink(agentsMdLink);
-    }
-
-    await fs.symlink(relativePath, agentsMdLink);
-
-    spinner.succeed('AGENTS.md symlink created');
-  } catch (error) {
-    spinner.fail('Failed to create AGENTS.md symlink');
-    throw error;
-  }
+  // AGENTS.md is accessible via .claude/config/AGENTS.md (symlinked directory)
+  // No action needed - keeping function for backward compatibility
+  return Promise.resolve();
 }
 
 /**

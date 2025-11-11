@@ -1,11 +1,3 @@
----
-version: 2.1.0
-last_updated: 2025-11-07
-description: Orchestrator instructions for Claude Code agent system
-maintainer: jaguilar@aaxis.com
-changelog: .claude/CHANGELOG.md
----
-
 # CLAUDE.md
 
 Guidance for Claude Code orchestrator working in this repository.
@@ -13,7 +5,7 @@ Guidance for Claude Code orchestrator working in this repository.
 ## Language Policy
 
 - **Technical Documentation:** All code, commits, technical documentation, and system artifacts MUST be in English.
-- **Chat Interactions:** Always respond to users in Spanish during chat conversations.
+- **Chat Interactions:** Always respond to users in the same language used during chat conversations.
 
 ## Core Operating Principles
 
