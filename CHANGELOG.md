@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.5] - 2025-11-10
+
+### Added
+- **Smart Installer Flow:** Project context repo now asked FIRST, with auto-population of all config
+- **Input Sanitization:** Handles "git clone <url>" pastes automatically (extracts just URL)
+- **Auto-Configuration:** Parses project-context.json and pre-fills all wizard questions
+- **Better Error Messages:** Clear troubleshooting tips for git clone failures (SSH keys, access, URL)
+
+### Changed
+- **Wizard Question Order:** Project context moved from last to first question
+- **User Experience:** Reduced manual input when project context exists
+- **Clone Strategy:** Validates project context early, then sets up in final location
+- **Error Handling:** Installation continues even if project context clone fails
+
+### Improved
+- Eliminates typos and configuration errors by pre-filling from existing context
+- Saves time for users with existing project-context repos
+- Better guidance when git operations fail
+
+---
+
 ## [1.3.4] - 2025-11-10
 
 ### Fixed

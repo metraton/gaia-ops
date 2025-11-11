@@ -255,6 +255,81 @@ function validateConfiguration(config, nonInteractive) {
 // ============================================================================
 
 /**
+ * Sanitize git repo URL input
+ * Handles cases where user pastes "git clone <url>" instead of just "<url>"
+ */
+function sanitizeGitUrl(input) {
+  if (!input || typeof input !== 'string') return '';
+
+  // Trim whitespace
+  let sanitized = input.trim();
+
+  // Remove "git clone" prefix if present
+  if (sanitized.toLowerCase().startsWith('git clone ')) {
+    sanitized = sanitized.substring('git clone '.length).trim();
+  }
+
+  // Remove quotes if present
+  sanitized = sanitized.replace(/^["']|["']$/g, '');
+
+  return sanitized;
+}
+
+/**
+ * Try to clone project context repo early and parse config
+ * Returns parsed config or null if clone fails
+ */
+async function tryCloneProjectContext(repoUrl) {
+  if (!repoUrl || repoUrl.trim() === '') {
+    return null;
+  }
+
+  const sanitizedUrl = sanitizeGitUrl(repoUrl);
+
+  const spinner = ora('Cloning project context repository...').start();
+
+  try {
+    const tempDir = join(CWD, '.claude-temp-context');
+
+    // Remove temp dir if exists
+    if (existsSync(tempDir)) {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    }
+
+    // Clone to temp directory
+    await execAsync(`git clone ${sanitizedUrl} ${tempDir}`, { timeout: 30000 });
+
+    // Try to read project-context.json
+    const contextPath = join(tempDir, 'project-context.json');
+
+    if (existsSync(contextPath)) {
+      const contextData = JSON.parse(await fs.readFile(contextPath, 'utf-8'));
+
+      // Clean up temp dir
+      await fs.rm(tempDir, { recursive: true, force: true });
+
+      spinner.succeed('Project context loaded successfully');
+      console.log(chalk.green('  ✓ Auto-populated configuration from project context\n'));
+
+      return {
+        contextData,
+        repoUrl: sanitizedUrl
+      };
+    } else {
+      // No project-context.json found
+      await fs.rm(tempDir, { recursive: true, force: true });
+      spinner.warn('Repository cloned but no project-context.json found');
+      return null;
+    }
+  } catch (error) {
+    spinner.fail('Failed to clone project context repository');
+    console.log(chalk.yellow(`\n⚠️  Error: ${error.message}`));
+    console.log(chalk.gray('  Continuing with manual configuration...\n'));
+    return null;
+  }
+}
+
+/**
  * Present interactive wizard to user
  */
 async function runInteractiveWizard(detected) {
@@ -276,32 +351,79 @@ async function runInteractiveWizard(detected) {
 
   console.log(chalk.gray('This wizard will set up the Gaia-Ops agent system for your project.\n'));
 
-  console.log(chalk.yellow('📍 Directory Configuration'));
-  console.log(chalk.gray('Gaia-Ops agents need to know where your code lives:\n'));
-  console.log(chalk.gray('  • GitOps: Kubernetes manifests that agents will monitor and deploy'));
-  console.log(chalk.gray('  • Terraform: Infrastructure code that agents will plan and apply'));
-  console.log(chalk.gray('  • App Services: Application code that agents will build and test\n'));
+  // =========================================================================
+  // STEP 1: Ask for project context repo first (if available)
+  // =========================================================================
+  console.log(chalk.yellow('🔗 Project Context (Optional but Recommended)'));
+  console.log(chalk.gray('If you have a project context repo, we can auto-populate your configuration.\n'));
+
+  const contextQuestion = await prompts({
+    type: 'text',
+    name: 'projectContextRepo',
+    message: '📦 Project context Git repo (e.g., git@bitbucket.org:org/context.git):',
+    initial: ''
+  }, {
+    onCancel: () => {
+      console.log(chalk.yellow('\n⚠️  Installation cancelled by user\n'));
+      process.exit(0);
+    }
+  });
+
+  // Try to clone and parse project context
+  let projectContext = null;
+  if (contextQuestion.projectContextRepo) {
+    projectContext = await tryCloneProjectContext(contextQuestion.projectContextRepo);
+  }
+
+  // Extract defaults from project context if available
+  const defaults = projectContext ? {
+    gitops: projectContext.contextData.paths?.gitops || detected.gitops || './gitops',
+    terraform: projectContext.contextData.paths?.terraform || detected.terraform || './terraform',
+    appServices: projectContext.contextData.paths?.app_services || detected.appServices || './app-services',
+    cloudProvider: projectContext.contextData.sections?.project_details?.cloud_provider || 'gcp',
+    gcpProjectId: projectContext.contextData.sections?.project_details?.project_id || projectContext.contextData.metadata?.project_id || '',
+    awsAccountId: projectContext.contextData.sections?.project_details?.aws_account || projectContext.contextData.metadata?.aws_account || '',
+    region: projectContext.contextData.sections?.project_details?.region || projectContext.contextData.metadata?.primary_region || 'us-central1',
+    clusterName: projectContext.contextData.sections?.project_details?.cluster_name || '',
+    repoUrl: projectContext?.repoUrl || contextQuestion.projectContextRepo
+  } : {
+    gitops: detected.gitops || './gitops',
+    terraform: detected.terraform || './terraform',
+    appServices: detected.appServices || './app-services',
+    cloudProvider: 'gcp',
+    gcpProjectId: '',
+    awsAccountId: '',
+    region: 'us-central1',
+    clusterName: '',
+    repoUrl: contextQuestion.projectContextRepo
+  };
+
+  // =========================================================================
+  // STEP 2: Ask remaining questions (with smart defaults from context)
+  // =========================================================================
+  console.log(chalk.yellow('\n📍 Directory Configuration'));
+  console.log(chalk.gray('Verify or adjust the following paths:\n'));
 
   const questions = [
     {
       type: 'text',
       name: 'gitops',
       message: '📦 GitOps directory:',
-      initial: detected.gitops || './gitops',
+      initial: defaults.gitops,
       validate: value => value.trim().length > 0
     },
     {
       type: 'text',
       name: 'terraform',
       message: '🔧 Terraform directory:',
-      initial: detected.terraform || './terraform',
+      initial: defaults.terraform,
       validate: value => value.trim().length > 0
     },
     {
       type: 'text',
       name: 'appServices',
       message: '🚀 App Services directory:',
-      initial: detected.appServices || './app-services',
+      initial: defaults.appServices,
       validate: value => value.trim().length > 0
     },
     {
@@ -313,31 +435,34 @@ async function runInteractiveWizard(detected) {
         { title: 'AWS (Amazon Web Services)', value: 'aws' },
         { title: 'Multi-cloud (AWS + GCP)', value: 'multi-cloud' }
       ],
-      initial: 0
+      initial: defaults.cloudProvider === 'gcp' ? 0 : defaults.cloudProvider === 'aws' ? 1 : 2
     },
     {
       type: (prev, values) => ['gcp', 'multi-cloud'].includes(values.cloudProvider) ? 'text' : null,
       name: 'gcpProjectId',
       message: '🌐 GCP Project ID (e.g., aaxis-rnd-non-prod):',
+      initial: defaults.gcpProjectId,
       validate: value => value.trim().length > 0
     },
     {
       type: (prev, values) => ['aws', 'multi-cloud'].includes(values.cloudProvider) ? 'text' : null,
       name: 'awsAccountId',
       message: '🌐 AWS Account ID (e.g., 929914624686):',
+      initial: defaults.awsAccountId,
       validate: value => value.trim().length > 0
     },
     {
       type: 'text',
       name: 'region',
       message: '🌍 Primary Region (e.g., us-central1 for GCP, us-east-1 for AWS):',
-      initial: 'us-central1',
+      initial: defaults.region,
       validate: value => value.trim().length > 0
     },
     {
       type: 'text',
       name: 'clusterName',
       message: '☸️  Cluster Name (e.g., rnd-gke-nonprod or digital-eks-prod):',
+      initial: defaults.clusterName,
       validate: value => value.trim().length > 0
     },
     {
@@ -345,12 +470,6 @@ async function runInteractiveWizard(detected) {
       name: 'installClaudeCode',
       message: '📥 Install Claude Code if not present?',
       initial: true
-    },
-    {
-      type: 'text',
-      name: 'projectContextRepo',
-      message: '🔗 Project context Git repo (optional, e.g., git@bitbucket.org:org/context.git):',
-      initial: ''
     }
   ];
 
@@ -366,6 +485,10 @@ async function runInteractiveWizard(detected) {
     console.log(chalk.yellow('\n⚠️  Installation cancelled or incomplete\n'));
     process.exit(0);
   }
+
+  // Add project context info to responses
+  responses.projectContextRepo = defaults.repoUrl;
+  responses.projectContextAlreadyCloned = !!projectContext;
 
   return responses;
 }
@@ -698,13 +821,58 @@ async function installClaudeAgentsPackage() {
 
 /**
  * Clone project context repository (optional)
+ * If already cloned during wizard, skip clone and just set it up in final location
  */
-async function cloneProjectContextRepo(repoUrl) {
+async function cloneProjectContextRepo(repoUrl, alreadyCloned = false) {
   if (!repoUrl || repoUrl.trim() === '') {
     console.log(chalk.gray('\n✓ Skipping project context repo clone (not provided)\n'));
     return;
   }
 
+  const sanitizedUrl = sanitizeGitUrl(repoUrl);
+
+  if (alreadyCloned) {
+    // Context was already cloned during wizard, just re-clone to final location
+    const spinner = ora('Setting up project context...').start();
+
+    try {
+      const projectContextDir = join(CWD, '.claude', 'project-context');
+
+      // Remove the generated project-context.json as it will be replaced by the cloned repo
+      const generatedFile = join(projectContextDir, 'project-context.json');
+      if (existsSync(generatedFile)) {
+        await fs.unlink(generatedFile);
+      }
+
+      // Clone fresh to final location (we already validated it works)
+      const tempDir = `${projectContextDir}-temp`;
+      await execAsync(`git clone ${sanitizedUrl} ${tempDir}`, { timeout: 30000 });
+
+      // Move contents from temp to project-context
+      const files = await fs.readdir(tempDir);
+      for (const file of files) {
+        const src = join(tempDir, file);
+        const dest = join(projectContextDir, file);
+        await fs.rename(src, dest);
+      }
+
+      // Remove temp directory
+      await fs.rm(tempDir, { recursive: true, force: true });
+
+      spinner.succeed('Project context repository configured');
+      console.log(chalk.green(`  → Location: .claude/project-context/\n`));
+    } catch (error) {
+      spinner.fail('Failed to setup project context repository');
+      console.log(chalk.yellow(`\n⚠️  You can clone it manually with:`));
+      console.log(chalk.gray(`  cd .claude`));
+      console.log(chalk.gray(`  rm -rf project-context`));
+      console.log(chalk.gray(`  git clone ${sanitizedUrl} project-context\n`));
+      // Don't throw - allow installation to continue
+    }
+    return;
+  }
+
+  // Not cloned yet during wizard, try to clone now
   const spinner = ora('Cloning project context repository...').start();
 
   try {
@@ -716,11 +884,11 @@ async function cloneProjectContextRepo(repoUrl) {
       await fs.unlink(generatedFile);
     }
 
-    // Clone repo directly into project-context directory
-    await execAsync(`git clone ${repoUrl} ${projectContextDir}-temp`);
+    // Clone repo
+    const tempDir = `${projectContextDir}-temp`;
+    await execAsync(`git clone ${sanitizedUrl} ${tempDir}`, { timeout: 30000 });
 
     // Move contents from temp to project-context
-    const tempDir = `${projectContextDir}-temp`;
     const files = await fs.readdir(tempDir);
     for (const file of files) {
       const src = join(tempDir, file);
@@ -729,17 +897,22 @@ async function cloneProjectContextRepo(repoUrl) {
     }
 
     // Remove temp directory
-    await fs.rmdir(tempDir);
+    await fs.rm(tempDir, { recursive: true, force: true });
 
     spinner.succeed('Project context repository cloned');
-    console.log(chalk.green(`  → Cloned from: ${repoUrl}`));
+    console.log(chalk.green(`  → Cloned from: ${sanitizedUrl}`));
     console.log(chalk.gray(`  → Location: .claude/project-context/\n`));
   } catch (error) {
     spinner.fail('Failed to clone project context repository');
-    console.log(chalk.yellow(`\n⚠️  You can clone it manually later with:`));
-    console.log(chalk.gray(`  cd .claude`));
-    console.log(chalk.gray(`  rm -rf project-context`));
-    console.log(chalk.gray(`  git clone ${repoUrl} project-context\n`));
+    console.log(chalk.yellow(`\n⚠️  Error: ${error.message}`));
+    console.log(chalk.gray('\n  Common issues:'));
+    console.log(chalk.gray('  • Check SSH keys are configured: ssh -T git@bitbucket.org'));
+    console.log(chalk.gray('  • Verify repository URL is correct'));
+    console.log(chalk.gray('  • Ensure you have access to the repository\n'));
+    console.log(chalk.yellow(`  You can clone it manually later with:`));
+    console.log(chalk.gray(`    cd .claude`));
+    console.log(chalk.gray(`    rm -rf project-context`));
+    console.log(chalk.gray(`    git clone ${sanitizedUrl} project-context\n`));
     // Don't throw - allow installation to continue
   }
 }
@@ -814,7 +987,7 @@ async function main() {
 
     // Step 10: Clone project context repository (optional)
     if (config.projectContextRepo) {
-      await cloneProjectContextRepo(config.projectContextRepo);
+      await cloneProjectContextRepo(config.projectContextRepo, config.projectContextAlreadyCloned);
     }
 
     // Success message
