@@ -355,11 +355,16 @@ async function runInteractiveWizard(detected) {
     }
   ];
 
-  const responses = await prompts(questions);
+  const responses = await prompts(questions, {
+    onCancel: () => {
+      console.log(chalk.yellow('\n⚠️  Installation cancelled by user\n'));
+      process.exit(0);
+    }
+  });
 
-  // User cancelled
-  if (Object.keys(responses).length < questions.length) {
-    console.log(chalk.yellow('\n⚠️  Installation cancelled by user\n'));
+  // Verify critical responses are present (some questions are conditional)
+  if (!responses.cloudProvider || !responses.clusterName) {
+    console.log(chalk.yellow('\n⚠️  Installation cancelled or incomplete\n'));
     process.exit(0);
   }
 
