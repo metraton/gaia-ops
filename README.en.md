@@ -15,8 +15,8 @@ Multi-agent orchestration system for Claude Code - DevOps automation toolkit.
 ### Features
 
 - **Multi-cloud support** - Works with GCP, AWS, and ready for Azure
-- **6 specialist agents** (terraform-architect, gitops-operator, gcp-troubleshooter, aws-troubleshooter, devops-developer, claude-architect)
-- **3 meta-agents** (Explore, Plan, claude-architect)
+- **6 specialist agents** (terraform-architect, gitops-operator, gcp-troubleshooter, aws-troubleshooter, devops-developer, Gaia)
+- **3 meta-agents** (Explore, Plan, Gaia)
 - **Clarification engine** for ambiguity detection
 - **Approval gates** for T3 operations (terraform apply, kubectl apply, etc.)
 - **Git commit validation** with Conventional Commits
@@ -91,7 +91,7 @@ node_modules/@jaguilar87/gaia-ops/
 │   ├── gcp-troubleshooter.md
 │   ├── aws-troubleshooter.md
 │   ├── devops-developer.md
-│   └── claude-architect.md
+│   └── gaia.md
 ├── tools/               # Orchestration tools
 │   ├── context_provider.py
 │   ├── agent_router.py
@@ -99,28 +99,35 @@ node_modules/@jaguilar87/gaia-ops/
 │   ├── approval_gate.py
 │   ├── commit_validator.py
 │   └── task_manager.py
-├── hooks/               # Git hooks
-│   └── pre-commit
+├── hooks/               # Claude Code hooks (Python)
+│   ├── pre_tool_use.py
+│   ├── post_tool_use.py
+│   ├── subagent_stop.py
+│   ├── session_start.py
+│   └── pre_kubectl_security.py
 ├── commands/            # Slash commands
-│   ├── architect.md
-│   └── speckit.*.md
+│   ├── gaia.md
+│   ├── save-session.md
+│   ├── restore-session.md
+│   ├── session-status.md
+│   └── speckit.*.md (7 commands)
 ├── config/              # Configuration & documentation
 │   ├── AGENTS.md
 │   ├── orchestration-workflow.md
 │   ├── git-standards.md
 │   ├── context-contracts.md
+│   ├── context-contracts.gcp.json
+│   ├── context-contracts.aws.json
 │   ├── agent-catalog.md
 │   └── git_standards.json
-├── templates/           # Code templates
+├── templates/           # Installation templates
 │   ├── CLAUDE.template.md
-│   └── code-examples/
-│       ├── commit_validation.py
-│       ├── clarification_workflow.py
-│       └── approval_gate_workflow.py
-├── config/              # Configuration
-│   └── git_standards.json
-├── CLAUDE.md            # Core orchestrator instructions
-├── AGENTS.md            # System overview
+│   └── settings.template.json
+├── speckit/             # Spec-Kit methodology
+│   ├── README.md
+│   ├── templates/
+│   ├── scripts/
+│   └── governance.md
 ├── CHANGELOG.md         # Version history
 ├── package.json
 └── index.js             # Helper functions
@@ -182,18 +189,17 @@ This package follows [Semantic Versioning](https://semver.org/):
 - **MINOR:** New features, agents, or improvements
 - **PATCH:** Bug fixes, clarifications, typos
 
-Current version: **2.1.0**
+Current version: **2.2.0**
 
 See [CHANGELOG.md](./CHANGELOG.md) for version history.
 
 ## Documentation
 
-- **Core Instructions:** [CLAUDE.md](./CLAUDE.md) (154 lines)
-- **System Overview:** [AGENTS.md](./AGENTS.md) (95 lines)
-- **Orchestration Workflow:** [docs/orchestration-workflow.md](./docs/orchestration-workflow.md) (735 lines)
-- **Git Standards:** [docs/git-standards.md](./docs/git-standards.md) (682 lines)
-- **Context Contracts:** [docs/context-contracts.md](./docs/context-contracts.md) (673 lines)
-- **Agent Catalog:** [docs/agent-catalog.md](./docs/agent-catalog.md) (603 lines)
+- **System Overview:** [config/AGENTS.md](./config/AGENTS.md) (95 lines)
+- **Orchestration Workflow:** [config/orchestration-workflow.md](./config/orchestration-workflow.md) (735 lines)
+- **Git Standards:** [config/git-standards.md](./config/git-standards.md) (682 lines)
+- **Context Contracts:** [config/context-contracts.md](./config/context-contracts.md) (673 lines)
+- **Agent Catalog:** [config/agent-catalog.md](./config/agent-catalog.md) (603 lines)
 
 ## Requirements
 

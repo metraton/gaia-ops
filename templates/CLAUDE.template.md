@@ -86,7 +86,7 @@ Guidance for Claude Code orchestrator working in this repository.
 | gitops-operator | project_details, gitops_configuration, cluster_details, operational_guidelines |
 | gcp/aws-troubleshooter | project_details, terraform_infrastructure, gitops_configuration, application_services |
 | devops-developer | project_details, operational_guidelines |
-| claude-architect | Manual context (system paths, logs, tests) |
+| Gaia | Manual context (gaia-ops paths, logs, tests) |
 
 ## Agent System
 
@@ -106,7 +106,7 @@ Guidance for Claude Code orchestrator working in this repository.
 
 | Agent | Primary Role |
 |-------|--------------|
-| **claude-architect** | System analysis & optimization |
+| **Gaia** | System analysis & optimization |
 | **Explore** | Codebase exploration |
 | **Plan** | Implementation planning |
 

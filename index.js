@@ -56,11 +56,13 @@ export function getCommandPath(commandName) {
 
 /**
  * Get absolute path to documentation
+ * @deprecated Use getConfigPath() instead. Documentation moved from docs/ to config/ in v2.0.0
  * @param {string} docName - Name of the doc (e.g., 'orchestration-workflow.md')
  * @returns {string} Absolute path to doc file
  */
 export function getDocPath(docName) {
-  return join(PACKAGE_ROOT, 'docs', docName);
+  console.warn('getDocPath() is deprecated. Use getConfigPath() instead. Documentation is now in config/ directory.');
+  return join(PACKAGE_ROOT, 'config', docName);
 }
 
 /**

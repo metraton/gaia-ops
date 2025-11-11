@@ -30,7 +30,7 @@ These agents work on **CLAUDE CODE SYSTEM ITSELF** (agent orchestration, tooling
 
 | Agent | Primary Role | Context Type | Model |
 |-------|--------------|--------------|-------|
-| **claude-architect** | System analysis & optimization | Manual (logs, .claude/, tests) | inherit |
+| **Gaia** | System analysis & optimization | Manual (gaia-ops package, .claude/, tests) | inherit |
 | **Explore** | Codebase exploration for understanding | Automatic (file patterns) | haiku |
 | **Plan** | Planning mode for implementation design | Automatic (user prompt) | inherit |
 
@@ -82,7 +82,7 @@ These agents work on **CLAUDE CODE SYSTEM ITSELF** (agent orchestration, tooling
 - T2: `terraform plan`
 - T3: `terragrunt apply` (requires approval)
 
-**Context Contract:** See `.claude/docs/context-contracts.md#terraform-architect`
+**Context Contract:** See `.claude/config/context-contracts.md#terraform-architect`
 
 **Use Cases:**
 - "Create a CloudSQL instance with Terraform"
@@ -148,7 +148,7 @@ Task(
 - T2: `git push` to feature branch, `flux reconcile`
 - T3: `kubectl apply`, `git push` to main (requires approval)
 
-**Context Contract:** See `.claude/docs/context-contracts.md#gitops-operator`
+**Context Contract:** See `.claude/config/context-contracts.md#gitops-operator`
 
 **Use Cases:**
 - "Deploy tcm-api service to non-prod cluster"
@@ -214,7 +214,7 @@ Task(
 - T2: `gcloud compute ssh` (for VM diagnostics)
 - T3: None (diagnostic agent, no destructive operations)
 
-**Context Contract:** See `.claude/docs/context-contracts.md#gcp-troubleshooter`
+**Context Contract:** See `.claude/config/context-contracts.md#gcp-troubleshooter`
 
 **Use Cases:**
 - "Why is tcm-api pod crashing with database connection error?"
@@ -270,7 +270,7 @@ Task(
 - T2: `aws ec2 ssh` (for EC2 diagnostics)
 - T3: None (diagnostic agent, no destructive operations)
 
-**Context Contract:** See `.claude/docs/context-contracts.md#aws-troubleshooter`
+**Context Contract:** See `.claude/config/context-contracts.md#aws-troubleshooter`
 
 **Use Cases:**
 - "Why is EKS pod failing with IAM permission error?"
@@ -308,7 +308,7 @@ Task(
 - T2: `git push` to feature branch, `npm publish` (to test registry)
 - T3: `git push` to main (requires approval)
 
-**Context Contract:** See `.claude/docs/context-contracts.md#devops-developer`
+**Context Contract:** See `.claude/config/context-contracts.md#devops-developer`
 
 **Use Cases:**
 - "Run tests and fix failures"
@@ -331,7 +331,7 @@ Task(
 
 ## Meta-Agents: Detailed Catalog
 
-### claude-architect
+### Gaia
 
 **Full Name:** Claude Code System Architect
 
@@ -363,7 +363,7 @@ Task(
 ```python
 # Orchestrator provides manual context in prompt
 Task(
-    subagent_type="claude-architect",
+    subagent_type="gaia",
     description="Analyze routing accuracy",
     prompt="""
 ## System Context
@@ -471,7 +471,7 @@ User Request
 │  └─ YES → devops-developer
 │
 ├─ System/agent analysis?
-│  └─ YES → claude-architect
+│  └─ YES → Gaia
 │
 ├─ Codebase exploration/understanding?
 │  └─ YES → Explore
@@ -488,8 +488,8 @@ User Request
 
 ```python
 # WRONG
-context = context_provider.py("claude-architect", "analyze logs")
-Task(subagent_type="claude-architect", prompt=context)
+context = context_provider.py("gaia", "analyze logs")
+Task(subagent_type="gaia", prompt=context)
 ```
 
 **Why:** Meta-agents work on the SYSTEM, not projects. They need system paths, not project context.
@@ -497,7 +497,7 @@ Task(subagent_type="claude-architect", prompt=context)
 **Correct:**
 ```python
 Task(
-    subagent_type="claude-architect",
+    subagent_type="gaia",
     prompt=f"System path: {system_path}\n\nTask: analyze logs"
 )
 ```
@@ -576,7 +576,7 @@ Track in `.claude/logs/agent-metrics.jsonl`:
 | gcp-troubleshooter | 123 | 98% | 28s | N/A |
 | aws-troubleshooter | 45 | 96% | 31s | N/A |
 | devops-developer | 189 | 92% | 18s | 15% |
-| claude-architect | 34 | 100% | 120s | N/A |
+| Gaia | 34 | 100% | 120s | N/A |
 | Explore | 456 | 99% | 8s | N/A |
 | Plan | 78 | 95% | 22s | N/A |
 

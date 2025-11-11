@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.1] - 2025-11-10
+
+### Fixed - Documentation Consistency
+- **README.md & README.en.md:**
+  - Updated version numbers from 2.1.0 → 2.2.0
+  - Corrected package structure (hooks/, templates/, commands/)
+  - Fixed hooks/ listing: now shows actual Python files (pre_tool_use.py, post_tool_use.py, etc.) instead of non-existent pre-commit
+  - Fixed templates/ listing: removed non-existent code-examples/, listed actual files (CLAUDE.template.md, settings.template.json)
+  - Added context-contracts.gcp.json and context-contracts.aws.json to config/ section
+  - Removed CLAUDE.md and AGENTS.md from package root (only templates exist)
+  - Added speckit/ directory to structure
+
+- **config/AGENTS.md:**
+  - Updated all references: `.claude/docs/` → `.claude/config/`
+  - Fixed quick links and support documentation paths
+
+- **config/agent-catalog.md:**
+  - Updated all 5 context contract references: `.claude/docs/` → `.claude/config/`
+
+- **index.js:**
+  - Deprecated `getDocPath()` function with console warning
+  - Function now redirects to `config/` directory instead of non-existent `docs/`
+  - Added JSDoc @deprecated annotation
+
+- **README.en.md (Documentation section):**
+  - Removed broken reference to `./CLAUDE.md` (file not in package)
+  - Fixed all documentation links: `./docs/` → `./config/`
+  - Updated to match actual config/ directory structure
+
+- **speckit/README.en.md:**
+  - Removed 3 non-existent commands: speckit.clarify, speckit.analyze-plan, speckit.constitution
+  - Updated command count: 9 → 7 actual commands
+  - Removed references to non-existent tasks-richer.py tool
+  - Removed entire sections for non-existent templates (data-model-template.md, contracts-template.md)
+  - Updated tool files list with actual tools (task_manager.py, clarify_engine.py, context_provider.py)
+  - Fixed all code examples to use only existing commands
+
+- **tools/context_provider.py:**
+  - Added auto-detection for project-context.json location
+  - Honors GAIA_CONTEXT_PATH environment variable
+  - Falls back through common locations (.claude/project-context.json, .claude/project-context/project-context.json)
+  - Fixes agent routing failures when project-context.json is in non-legacy location
+
+- **package.json:**
+  - Fixed `npm test` script (was calling non-existent pytest tests)
+  - Now echoes informative message about fixture availability
+
+- **Agent Branding Unification:**
+  - Renamed `agents/claude-architect.md` → `agents/gaia.md` (aligns with gaia-ops package name)
+  - Renamed `commands/gaina.md` → `commands/gaia.md` (unified as `/gaia` command)
+  - Updated all references in README.md, README.en.md, and agents/gaia.md
+  - Complete branding consistency: package name, agent name, and command name all use "gaia"
+
+### Benefits
+- ✅ **Accurate documentation:** All paths and structures match actual package contents
+- ✅ **No broken links:** References point to existing files
+- ✅ **Clear API:** Deprecated functions clearly marked
+- ✅ **User trust:** Documentation matches reality
+- ✅ **npm test passes:** No false failures
+
+---
+
 ## [2.2.0] - 2025-11-10
 
 ### Added - Unified Settings Template & Auto-Installation
@@ -46,7 +108,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated header and JSDoc comments with new package name
   - Updated example usage
 
-- **agents/claude-architect.md:**
+- **agents/gaia.md:**
   - Updated system paths to reflect gaia-ops package structure
   - Clarified symlink architecture and layout
 

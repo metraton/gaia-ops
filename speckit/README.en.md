@@ -60,26 +60,23 @@ Spec-Kit provides structured workflow for feature development:
 ├── templates/               # 5 markdown templates
 │   ├── spec-template.md     # Feature specification template
 │   ├── plan-template.md     # Implementation plan template
-│   ├── tasks-template.md    # Tasks list template
-│   ├── data-model-template.md  # Data model template
-│   └── contracts-template.md   # API contracts template
-└── memory/                  # Legacy directory (deprecated)
-    └── constitution.md      # MOVED to project root
+│   ├── tasks-template.md    # Task list template
+│   ├── adr-template.md      # Architecture Decision Record template
+│   └── agent-file-template.md  # Agent context file template
 
-.claude/commands/            # 9 /speckit.* commands
+.claude/commands/            # 7 /speckit.* commands
 ├── speckit.specify.md       # Create specification
-├── speckit.clarify.md       # Clarify ambiguities
+├── speckit.init.md          # Initialize Spec-Kit structure
 ├── speckit.plan.md          # Create implementation plan
 ├── speckit.tasks.md         # Generate task list
-├── speckit.analyze-plan.md  # Validate consistency (cross-artifact)
 ├── speckit.analyze-task.md  # Analyze specific task (deep-dive)
 ├── speckit.implement.md     # Execute implementation
-├── speckit.add-task.md      # Add ad-hoc task (with auto-validation)
-└── speckit.constitution.md  # Update constitution
+└── speckit.add-task.md      # Add ad-hoc task (with auto-validation)
 
 .claude/tools/               # Python utilities
 ├── agent_router.py          # Route tasks to agents
-└── tasks-richer.py          # Auto-enrich tasks with metadata
+├── task_manager.py          # Manage task lifecycle
+└── clarify_engine.py        # Ambiguity detection
 
 <project-root>/              # User-specified root (e.g., spec-kit-tcm-plan/)
 ├── constitution.md          # Project governance principles
@@ -113,9 +110,9 @@ Spec-Kit provides structured workflow for feature development:
 mkdir -p spec-kit-tcm-plan/specs
 ```
 
-**Step 2: Create constitution (optional)**
+**Step 2: Initialize Spec-Kit structure**
 ```bash
-/speckit.constitution spec-kit-tcm-plan
+/speckit.init spec-kit-tcm-plan
 ```
 
 **Ready!** Commands are available immediately. Example:
@@ -133,28 +130,23 @@ mkdir -p spec-kit-tcm-plan/specs
 
 | Command | Syntax | Purpose | When to Use |
 |---------|--------|---------|-------------|
+| **init** | `/speckit.init <root>` | Bootstrap Spec-Kit structure | Initial project setup |
 | **specify** | `/speckit.specify <root> "description"` | Create new feature specification | Start of workflow |
-| **clarify** | `/speckit.clarify <root> <feature>` | Resolve ambiguities in spec.md | After specify, before plan (optional) |
-| **plan** | `/speckit.plan <root> <feature>` | Create technical implementation plan | After specify/clarify |
+| **plan** | `/speckit.plan <root> <feature>` | Create technical implementation plan | After specify |
 | **tasks** | `/speckit.tasks <root> <feature>` | Generate task list with metadata | After plan |
-| **analyze-plan** | `/speckit.analyze-plan <root> <feature>` | Validate spec/plan/tasks consistency | After tasks, before implement (optional) |
 | **implement** | `/speckit.implement <root> <feature>` | Execute tasks with automatic routing | After tasks |
 | **add-task** | `/speckit.add-task <root> <feature> "desc"` | Add ad-hoc task with validation | During implement |
 | **analyze-task** | `/speckit.analyze-task <root> <feature> T###` | Deep analysis of specific task | Before executing risky tasks |
-| **constitution** | `/speckit.constitution <root>` | Create/update governance principles | Initial setup or updates |
 
 ### Usage Examples
 
 ```bash
 # Basic complete workflow
+/speckit.init spec-kit-tcm-plan
 /speckit.specify spec-kit-tcm-plan "Project Guidance Deployment"
 /speckit.plan spec-kit-tcm-plan 004-project-guidance-deployment
 /speckit.tasks spec-kit-tcm-plan 004-project-guidance-deployment
 /speckit.implement spec-kit-tcm-plan 004-project-guidance-deployment
-
-# With optional validation
-/speckit.clarify spec-kit-tcm-plan 004-project-guidance-deployment
-/speckit.analyze-plan spec-kit-tcm-plan 004-project-guidance-deployment
 
 # During implementation
 /speckit.add-task spec-kit-tcm-plan 004-project-guidance-deployment "Fix config error"
@@ -181,42 +173,11 @@ Location: `.claude/speckit/scripts/`
 **Format:**
 ```markdown
 - [ ] T001 Task description
-  <!-- Metadata injected by tasks-richer.py -->
 ```
 
 **Used by:** `/speckit.tasks`
 
 ---
-
-### data-model-template.md
-
-**Purpose:** Data model documentation template
-
-**Location:** `.claude/speckit/templates/data-model-template.md`
-
-**Sections:**
-- Entity Definitions
-- Relationships
-- Schema Design
-- Migrations
-
-**Optional:** Created manually when needed
-
----
-
-### contracts-template.md
-
-**Purpose:** API contracts template
-
-**Location:** `.claude/speckit/templates/contracts-template.md`
-
-**Sections:**
-- API Endpoints
-- Request/Response Schemas
-- Error Codes
-- Authentication
-
-**Optional:** Created manually when needed
 
 ## Auto-Enrichment
 
@@ -234,12 +195,7 @@ Automatic injection of metadata into tasks for agent routing and risk assessment
 
 ### Enrichment Process
 
-**Step 1: Task parsing**
-```bash
-python3 .claude/tools/tasks-richer.py tasks.md
-```
-
-**Step 2: Agent routing**
+**Step 1: Agent routing**
 ```bash
 python3 .claude/tools/agent_router.py --json "Task description"
 ```
@@ -411,10 +367,7 @@ WARNING: constitution.md not found at spec-kit-tcm-plan/constitution.md
 **Solution:**
 ```bash
 # Create constitution
-/speckit.constitution
-
-# Or move existing
-mv .claude/speckit/memory/constitution.md spec-kit-tcm-plan/
+# Create governance document manually if needed
 ```
 
 ---
@@ -561,8 +514,8 @@ jq --version
 ### Feature Development
 
 - ✅ Follow workflow order (specify → plan → tasks → implement)
-- ✅ Use `/speckit.clarify` to resolve ambiguities early
-- ✅ Run `/speckit.analyze` before implementation (optional but recommended)
+- ✅ Use clarify_engine.py for ambiguity detection (automatic)
+- ✅ Run `/speckit.analyze-task` for high-risk tasks before execution
 - ✅ Let auto-enrichment handle metadata (don't edit manually)
 
 ### Risk Management
@@ -600,20 +553,18 @@ jq --version
 All commands in `.claude/commands/speckit.*.md`:
 - speckit.init.md
 - speckit.specify.md
-- speckit.clarify.md
 - speckit.plan.md
 - speckit.tasks.md
-- speckit.analyze-plan.md
 - speckit.analyze-task.md
 - speckit.implement.md
 - speckit.add-task.md
-- speckit.constitution.md
 
 ### Tool Files
 
 - `.claude/tools/agent_router.py` - Agent routing logic
-- `.claude/tools/tasks-richer.py` - Task enrichment logic
-- `.claude/tools/context_section_reader.py` - Context filtering
+- `.claude/tools/task_manager.py` - Task lifecycle management
+- `.claude/tools/clarify_engine.py` - Ambiguity detection
+- `.claude/tools/context_provider.py` - Context provisioning
 
 **Framework Base**
 

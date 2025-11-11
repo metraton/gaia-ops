@@ -15,8 +15,8 @@ Sistema de orquestación multi-agente para Claude Code - Toolkit de automatizaci
 ### Características
 
 - **Soporte multi-cloud** - Funciona con GCP, AWS, y listo para Azure
-- **6 agentes especialistas** (terraform-architect, gitops-operator, gcp-troubleshooter, aws-troubleshooter, devops-developer, claude-architect)
-- **3 meta-agentes** (Explore, Plan, claude-architect)
+- **6 agentes especialistas** (terraform-architect, gitops-operator, gcp-troubleshooter, aws-troubleshooter, devops-developer, Gaia)
+- **3 meta-agentes** (Explore, Plan, Gaia)
 - **Motor de clarificación** para detección de ambigüedades
 - **Puertas de aprobación** para operaciones T3 (terraform apply, kubectl apply, etc.)
 - **Validación de commits Git** con Conventional Commits
@@ -91,7 +91,7 @@ node_modules/@jaguilar87/gaia-ops/
 │   ├── gcp-troubleshooter.md
 │   ├── aws-troubleshooter.md
 │   ├── devops-developer.md
-│   └── claude-architect.md
+│   └── gaia.md
 ├── tools/               # Herramientas de orquestación
 │   ├── context_provider.py
 │   ├── agent_router.py
@@ -99,28 +99,35 @@ node_modules/@jaguilar87/gaia-ops/
 │   ├── approval_gate.py
 │   ├── commit_validator.py
 │   └── task_manager.py
-├── hooks/               # Git hooks
-│   └── pre-commit
+├── hooks/               # Hooks de Claude Code (Python)
+│   ├── pre_tool_use.py
+│   ├── post_tool_use.py
+│   ├── subagent_stop.py
+│   ├── session_start.py
+│   └── pre_kubectl_security.py
 ├── commands/            # Comandos slash
-│   ├── architect.md
-│   └── speckit.*.md
+│   ├── gaia.md
+│   ├── save-session.md
+│   ├── restore-session.md
+│   ├── session-status.md
+│   └── speckit.*.md (7 comandos)
 ├── config/              # Configuración y documentación
 │   ├── AGENTS.md
 │   ├── orchestration-workflow.md
 │   ├── git-standards.md
 │   ├── context-contracts.md
+│   ├── context-contracts.gcp.json
+│   ├── context-contracts.aws.json
 │   ├── agent-catalog.md
 │   └── git_standards.json
-├── templates/           # Plantillas de código
+├── templates/           # Templates de instalación
 │   ├── CLAUDE.template.md
-│   └── code-examples/
-│       ├── commit_validation.py
-│       ├── clarification_workflow.py
-│       └── approval_gate_workflow.py
-├── config/              # Configuración
-│   └── git_standards.json
-├── CLAUDE.md            # Instrucciones del orquestador principal
-├── AGENTS.md            # Vista general del sistema
+│   └── settings.template.json
+├── speckit/             # Metodología Spec-Kit
+│   ├── README.md
+│   ├── templates/
+│   ├── scripts/
+│   └── governance.md
 ├── CHANGELOG.md         # Historial de versiones
 ├── package.json
 └── index.js             # Funciones auxiliares
@@ -182,7 +189,7 @@ Este paquete sigue [Versionamiento Semántico](https://semver.org/):
 - **MINOR:** Nuevas características, agentes o mejoras
 - **PATCH:** Correcciones de bugs, clarificaciones, errores tipográficos
 
-Versión actual: **2.1.0**
+Versión actual: **2.2.0**
 
 Ver [CHANGELOG.md](./CHANGELOG.md) para el historial de versiones.
 

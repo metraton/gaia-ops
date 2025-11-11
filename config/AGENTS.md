@@ -8,9 +8,9 @@ See `CLAUDE.md` for complete orchestrator instructions.
 
 **Quick links:**
 - Core principles: `CLAUDE.md` (lines 18-36)
-- Workflow: `.claude/docs/orchestration-workflow.md`
-- Git standards: `.claude/docs/git-standards.md`
-- Agent catalog: `.claude/docs/agent-catalog.md`
+- Workflow: `.claude/config/orchestration-workflow.md`
+- Git standards: `.claude/config/git-standards.md`
+- Agent catalog: `.claude/config/agent-catalog.md`
 
 ---
 
@@ -71,7 +71,7 @@ Claude Code (Orchestrator)
     ├── gcp-troubleshooter (GCP diagnostics)
     ├── aws-troubleshooter (AWS diagnostics)
     ├── devops-developer (Application build/test)
-    ├── claude-architect (System optimization)
+    ├── Gaia (System optimization)
     ├── Explore (Codebase exploration)
     └── Plan (Implementation planning)
 ```
@@ -153,7 +153,7 @@ See `CLAUDE.md` and `.claude/CHANGELOG.md` for contribution guidelines.
 
 - **Issues:** Create issue in GitHub repository
 - **Questions:** Contact Jorge Aguilar (jaguilar@aaxis.com)
-- **Documentation:** See `.claude/docs/*.md`
+- **Documentation:** See `.claude/config/*.md`
 
 ---
 

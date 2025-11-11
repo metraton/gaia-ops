@@ -526,7 +526,7 @@ devops-developer:
 
 ---
 
-## claude-architect (Meta-Agent)
+## Gaia (Meta-Agent)
 
 **Purpose:** Analyzes, diagnoses, and optimizes the agent orchestration system itself
 
@@ -535,7 +535,7 @@ devops-developer:
 ### Manual Context Structure
 
 ```yaml
-claude-architect:
+gaia:
   context_type: "manual"
 
   provided_in_prompt:
@@ -561,7 +561,7 @@ claude-architect:
 
 ```python
 Task(
-    subagent_type="claude-architect",
+    subagent_type="gaia",
     description="Analyze routing accuracy",
     prompt="""
 ## System Context
@@ -714,7 +714,7 @@ if agent_contract_version == "1.0":
 | gcp-troubleshooter | project_details, terraform_infrastructure, gitops_configuration | application_services, issue_context | GCP diagnostics |
 | aws-troubleshooter | project_details, terraform_infrastructure, gitops_configuration | application_services, issue_context | AWS diagnostics |
 | devops-developer | project_details, operational_guidelines | application_services, development_context | App build/test/debug |
-| claude-architect | (manual context in prompt) | N/A | System analysis & optimization |
+| Gaia | (manual context in prompt) | N/A | System analysis & optimization |
 
 ---
 

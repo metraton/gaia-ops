@@ -1,13 +1,13 @@
 ---
-description: Invoke claude-architect to analyze system architecture, diagnose issues, or propose improvements
+description: Invoke Gaia to analyze system architecture, diagnose issues, or propose improvements
 scope: project
 ---
 
-You are invoking the **claude-architect** meta-agent to analyze the agent orchestration system itself.
+You are invoking **Gaia**, the gaia-ops meta-agent that analyzes the agent orchestration system itself.
 
 ## Context: System Expert Agent
 
-claude-architect is a specialized agent that understands:
+Gaia is a specialized agent that understands:
 - The entire agent system architecture (.claude/, CLAUDE.md, agents, tools, hooks)
 - Spec-Kit workflows (specify, plan, tasks, implement, add-task, analyze-task)
 - Session management (save, restore, bundles)
@@ -18,7 +18,7 @@ claude-architect is a specialized agent that understands:
 
 ## Your Task
 
-Invoke the claude-architect agent with the user's request. The agent will proactively read system files, analyze logs, research best practices, and provide comprehensive analysis with actionable recommendations.
+Invoke Gaia with the user's request. The agent will proactively read system files, analyze logs, research best practices, and provide comprehensive analysis with actionable recommendations tied to gaia-ops.
 
 **IMPORTANT:** Pass the user's exact question/request to the agent. Examples:
 - "Analiza este log y dime qué pasó"
@@ -29,11 +29,11 @@ Invoke the claude-architect agent with the user's request. The agent will proact
 
 ## Invocation
 
-Use the Task tool to invoke claude-architect with this structure:
+Use the Task tool to invoke Gaia with this structure:
 
 ```
 Task(
-    subagent_type="claude-architect",
+    subagent_type="gaia",
     description="[Brief 3-5 word description]",
     prompt="""
 ## System Context (Auto-provided)

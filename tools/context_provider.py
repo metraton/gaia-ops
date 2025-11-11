@@ -6,9 +6,30 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 
 # This script is expected to be run from the root of the repository.
-# The project context file is located at `.claude/project-context.json`.
-# We construct the path relative to the script's assumed execution location.
-DEFAULT_CONTEXT_PATH = Path(".claude/project-context.json")
+# Historically the project context lived at `.claude/project-context.json`, but
+# newer installs keep it under `.claude/project-context/project-context.json`.
+# We auto-detect the most common locations (and honor GAIA_CONTEXT_PATH) so agent
+# routing never breaks if the file isn't symlinked to the legacy path.
+def get_default_context_path() -> Path:
+    """Detects the project-context.json location, honoring GAIA_CONTEXT_PATH."""
+    env_override = os.environ.get("GAIA_CONTEXT_PATH")
+    if env_override:
+        return Path(env_override).expanduser()
+
+    candidates = [
+        Path(".claude/project-context.json"),
+        Path(".claude/project-context/project-context.json"),
+        Path("project-context.json"),
+    ]
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+
+    # Fall back to the legacy expectation; load_project_context will surface error
+    return candidates[0]
+
+DEFAULT_CONTEXT_PATH = get_default_context_path()
 
 # Path to provider-specific contract files
 # When running from installed project: .claude/config (symlinked)
