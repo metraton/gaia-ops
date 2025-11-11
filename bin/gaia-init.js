@@ -352,15 +352,51 @@ async function runInteractiveWizard(detected) {
   console.log(chalk.gray('This wizard will set up the Gaia-Ops agent system for your project.\n'));
 
   // =========================================================================
-  // STEP 1: Ask for project context repo first (if available)
+  // STEP 1: Ask for directory paths FIRST (always required)
   // =========================================================================
-  console.log(chalk.yellow('🔗 Project Context (Optional but Recommended)'));
-  console.log(chalk.gray('If you have a project context repo, we can auto-populate your configuration.\n'));
+  console.log(chalk.yellow('📍 Directory Configuration'));
+  console.log(chalk.gray('Where do you keep your code?\n'));
+
+  const pathQuestions = await prompts([
+    {
+      type: 'text',
+      name: 'gitops',
+      message: '📦 GitOps directory:',
+      initial: detected.gitops || './gitops',
+      validate: value => value.trim().length > 0
+    },
+    {
+      type: 'text',
+      name: 'terraform',
+      message: '🔧 Terraform directory:',
+      initial: detected.terraform || './terraform',
+      validate: value => value.trim().length > 0
+    },
+    {
+      type: 'text',
+      name: 'appServices',
+      message: '🚀 App Services directory:',
+      initial: detected.appServices || './app-services',
+      validate: value => value.trim().length > 0
+    }
+  ], {
+    onCancel: () => {
+      console.log(chalk.yellow('\n⚠️  Installation cancelled by user\n'));
+      process.exit(0);
+    }
+  });
+
+  // =========================================================================
+  // STEP 2: Ask for project context repo (optional)
+  // =========================================================================
+  console.log(chalk.yellow('\n🔗 Project Context (Optional)'));
+  console.log(chalk.gray('If you have an existing project context repo, provide it here.\n'));
+  console.log(chalk.gray('If not, we\'ll ask a few questions to create a basic one.\n'));
 
   const contextQuestion = await prompts({
     type: 'text',
     name: 'projectContextRepo',
-    message: '📦 Project context Git repo (e.g., git@bitbucket.org:org/context.git):',
+    message: '📦 Project context repo (leave empty if you don\'t have one):',
     initial: ''
   }, {
     onCancel: () => {
@@ -371,156 +407,128 @@ async function runInteractiveWizard(detected) {
 
   // Try to clone and parse project context
   let projectContext = null;
-  if (contextQuestion.projectContextRepo) {
+  let configFromContext = null;
+
+  if (contextQuestion.projectContextRepo && contextQuestion.projectContextRepo.trim() !== '') {
     projectContext = await tryCloneProjectContext(contextQuestion.projectContextRepo);
-  }
 
-  // Extract defaults from project context if available
-  const defaults = projectContext ? {
-    gitops: projectContext.contextData.paths?.gitops || detected.gitops || './gitops',
-    terraform: projectContext.contextData.paths?.terraform || detected.terraform || './terraform',
-    appServices: projectContext.contextData.paths?.app_services || detected.appServices || './app-services',
-    cloudProvider: projectContext.contextData.sections?.project_details?.cloud_provider || 'gcp',
-    gcpProjectId: projectContext.contextData.sections?.project_details?.project_id || projectContext.contextData.metadata?.project_id || '',
-    awsAccountId: projectContext.contextData.sections?.project_details?.aws_account || projectContext.contextData.metadata?.aws_account || '',
-    region: projectContext.contextData.sections?.project_details?.region || projectContext.contextData.metadata?.primary_region || 'us-central1',
-    clusterName: projectContext.contextData.sections?.project_details?.cluster_name || '',
-    repoUrl: projectContext?.repoUrl || contextQuestion.projectContextRepo
-  } : {
-    gitops: detected.gitops || './gitops',
-    terraform: detected.terraform || './terraform',
-    appServices: detected.appServices || './app-services',
-    cloudProvider: 'gcp',
-    gcpProjectId: '',
-    awsAccountId: '',
-    region: 'us-central1',
-    clusterName: '',
-    repoUrl: contextQuestion.projectContextRepo
-  };
+    if (projectContext) {
+      // Extract config from context
+      configFromContext = {
+        cloudProvider: projectContext.contextData.sections?.project_details?.cloud_provider || projectContext.contextData.cloud_provider || 'gcp',
+        gcpProjectId: projectContext.contextData.sections?.project_details?.project_id || projectContext.contextData.project_id_gcp || '',
+        awsAccountId: projectContext.contextData.sections?.project_details?.aws_account || projectContext.contextData.aws_account || '',
+        region: projectContext.contextData.sections?.project_details?.region || projectContext.contextData.primary_region || 'us-central1',
+        clusterName: projectContext.contextData.sections?.project_details?.cluster_name || projectContext.contextData.infrastructure?.clusters?.primary?.name || ''
+      };
 
-  // =========================================================================
-  // STEP 2: Ask remaining questions (with smart defaults from context)
-  // =========================================================================
-
-  // If we have project context, show a summary and only ask to confirm paths
-  if (projectContext) {
-    console.log(chalk.green('\n✅ Configuration loaded from project context:'));
-    console.log(chalk.gray(`  • Cloud: ${defaults.cloudProvider.toUpperCase()}`));
-    if (defaults.gcpProjectId) console.log(chalk.gray(`  • GCP Project: ${defaults.gcpProjectId}`));
-    if (defaults.awsAccountId) console.log(chalk.gray(`  • AWS Account: ${defaults.awsAccountId}`));
-    console.log(chalk.gray(`  • Region: ${defaults.region}`));
-    console.log(chalk.gray(`  • Cluster: ${defaults.clusterName}`));
-    console.log(chalk.yellow('\n📍 Directory Configuration'));
-    console.log(chalk.gray('Verify or adjust paths if needed:\n'));
-  } else {
-    console.log(chalk.yellow('\n📍 Directory Configuration'));
-    console.log(chalk.gray('Please provide your project configuration:\n'));
-  }
-
-  const questions = [
-    {
-      type: 'text',
-      name: 'gitops',
-      message: '📦 GitOps directory:',
-      initial: defaults.gitops,
-      validate: value => value.trim().length > 0
-    },
-    {
-      type: 'text',
-      name: 'terraform',
-      message: '🔧 Terraform directory:',
-      initial: defaults.terraform,
-      validate: value => value.trim().length > 0
-    },
-    {
-      type: 'text',
-      name: 'appServices',
-      message: '🚀 App Services directory:',
-      initial: defaults.appServices,
-      validate: value => value.trim().length > 0
-    },
-    // Only ask cloud provider if not loaded from context
-    {
-      type: projectContext ? null : 'select',
-      name: 'cloudProvider',
-      message: '☁️  Cloud provider:',
-      choices: [
-        { title: 'GCP (Google Cloud Platform)', value: 'gcp' },
-        { title: 'AWS (Amazon Web Services)', value: 'aws' },
-        { title: 'Multi-cloud (AWS + GCP)', value: 'multi-cloud' }
-      ],
-      initial: defaults.cloudProvider === 'gcp' ? 0 : defaults.cloudProvider === 'aws' ? 1 : 2
-    },
-    // Only ask GCP Project ID if not loaded from context
-    {
-      type: (prev, values) => {
-        const provider = values.cloudProvider || defaults.cloudProvider;
-        const needsGcp = ['gcp', 'multi-cloud'].includes(provider);
-        const hasValue = projectContext && defaults.gcpProjectId;
-        return (needsGcp && !hasValue) ? 'text' : null;
-      },
-      name: 'gcpProjectId',
-      message: '🌐 GCP Project ID (e.g., aaxis-rnd-non-prod):',
-      initial: defaults.gcpProjectId,
-      validate: value => value.trim().length > 0
-    },
-    // Only ask AWS Account if not loaded from context
-    {
-      type: (prev, values) => {
-        const provider = values.cloudProvider || defaults.cloudProvider;
-        const needsAws = ['aws', 'multi-cloud'].includes(provider);
-        const hasValue = projectContext && defaults.awsAccountId;
-        return (needsAws && !hasValue) ? 'text' : null;
-      },
-      name: 'awsAccountId',
-      message: '🌐 AWS Account ID (e.g., 929914624686):',
-      initial: defaults.awsAccountId,
-      validate: value => value.trim().length > 0
-    },
-    // Only ask region if not loaded from context
-    {
-      type: projectContext && defaults.region ? null : 'text',
-      name: 'region',
-      message: '🌍 Primary Region (e.g., us-central1 for GCP, us-east-1 for AWS):',
-      initial: defaults.region,
-      validate: value => value.trim().length > 0
-    },
-    // Only ask cluster name if not loaded from context
-    {
-      type: projectContext && defaults.clusterName ? null : 'text',
-      name: 'clusterName',
-      message: '☸️  Cluster Name (e.g., rnd-gke-nonprod or digital-eks-prod):',
-      initial: defaults.clusterName,
-      validate: value => value.trim().length > 0
-    },
-    {
-      type: 'confirm',
-      name: 'installClaudeCode',
-      message: '📥 Install Claude Code if not present?',
-      initial: true
+      console.log(chalk.green('\n✅ Configuration loaded from project context:'));
+      console.log(chalk.gray(`  • Cloud: ${configFromContext.cloudProvider.toUpperCase()}`));
+      if (configFromContext.gcpProjectId) console.log(chalk.gray(`  • GCP Project: ${configFromContext.gcpProjectId}`));
+      if (configFromContext.awsAccountId) console.log(chalk.gray(`  • AWS Account: ${configFromContext.awsAccountId}`));
+      if (configFromContext.region) console.log(chalk.gray(`  • Region: ${configFromContext.region}`));
+      if (configFromContext.clusterName) console.log(chalk.gray(`  • Cluster: ${configFromContext.clusterName}`));
+      console.log(chalk.gray('\nUsing this configuration. Installation will continue...\n'));
     }
-  ];
+  }
 
-  const responses = await prompts(questions, {
+  // =========================================================================
+  // STEP 3: If NO project context, ask basic questions to create one
+  // =========================================================================
+  let additionalConfig = {};
+
+  if (!projectContext) {
+    console.log(chalk.yellow('📝 Project Configuration'));
+    console.log(chalk.gray('Let\'s gather some basic info to create your project context.\n'));
+    console.log(chalk.gray('You can leave fields empty if you don\'t have the info yet.\n'));
+
+    const configQuestions = await prompts([
+      {
+        type: 'select',
+        name: 'cloudProvider',
+        message: '☁️  Cloud provider:',
+        choices: [
+          { title: 'GCP (Google Cloud Platform)', value: 'gcp' },
+          { title: 'AWS (Amazon Web Services)', value: 'aws' },
+          { title: 'Multi-cloud (AWS + GCP)', value: 'multi-cloud' }
+        ],
+        initial: 0
+      },
+      {
+        type: (prev) => ['gcp', 'multi-cloud'].includes(prev) ? 'text' : null,
+        name: 'gcpProjectId',
+        message: '🌐 GCP Project ID (optional):',
+        initial: ''
+      },
+      {
+        type: (prev, values) => ['aws', 'multi-cloud'].includes(values.cloudProvider) ? 'text' : null,
+        name: 'awsAccountId',
+        message: '🌐 AWS Account ID (optional):',
+        initial: ''
+      },
+      {
+        type: 'text',
+        name: 'region',
+        message: '🌍 Primary Region (optional):',
+        initial: ''
+      },
+      {
+        type: 'text',
+        name: 'clusterName',
+        message: '☸️  Cluster Name (optional):',
+        initial: ''
+      }
+    ], {
+      onCancel: () => {
+        console.log(chalk.yellow('\n⚠️  Installation cancelled by user\n'));
+        process.exit(0);
+      }
+    });
+
+    additionalConfig = configQuestions;
+  }
+
+  // =========================================================================
+  // STEP 4: Ask if should install Claude Code
+  // =========================================================================
+  const claudeCodeQuestion = await prompts({
+    type: 'confirm',
+    name: 'installClaudeCode',
+    message: '📥 Install Claude Code if not present?',
+    initial: true
+  }, {
     onCancel: () => {
       console.log(chalk.yellow('\n⚠️  Installation cancelled by user\n'));
       process.exit(0);
     }
   });
 
-  // Merge responses with defaults (for values skipped because they were in context)
+  // =========================================================================
+  // Build final configuration
+  // =========================================================================
   const finalConfig = {
-    ...defaults,
-    ...responses,
-    projectContextRepo: defaults.repoUrl,
+    // Paths (always from user input)
+    gitops: pathQuestions.gitops,
+    terraform: pathQuestions.terraform,
+    appServices: pathQuestions.appServices,
+
+    // Config (from context OR from user input)
+    ...(projectContext ? configFromContext : additionalConfig),
+
+    // Claude Code installation preference
+    installClaudeCode: claudeCodeQuestion.installClaudeCode,
+
+    // Context repo info
+    projectContextRepo: contextQuestion.projectContextRepo || '',
     projectContextAlreadyCloned: !!projectContext
   };
 
-  // Verify critical responses are present
-  if (!finalConfig.cloudProvider || !finalConfig.clusterName) {
-    console.log(chalk.yellow('\n⚠️  Installation cancelled or incomplete\n'));
-    process.exit(0);
-  }
+  // Set defaults for empty values
+  if (!finalConfig.cloudProvider) finalConfig.cloudProvider = 'gcp';
+  if (!finalConfig.gcpProjectId) finalConfig.gcpProjectId = '';
+  if (!finalConfig.awsAccountId) finalConfig.awsAccountId = '';
+  if (!finalConfig.region) finalConfig.region = 'us-central1';
+  if (!finalConfig.clusterName) finalConfig.clusterName = '';
 
   return finalConfig;
 }

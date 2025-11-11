@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2025-11-10
+
+### Changed - BREAKING: Complete Installer Redesign
+- **NEW FLOW:** Directories first, context second (much more logical!)
+  1. Ask for directories (gitops, terraform, app-services) - ALWAYS
+  2. Ask for project context repo - OPTIONAL
+  3. If NO context: Ask basic questions to create project-context.json
+  4. If YES context: Use that configuration and done!
+
+### Improved
+- **Clearer Purpose:** Context repo is now clearly optional
+- **Better Fallback:** If no context exists, creates a basic one with minimal info
+- **All Fields Optional:** Can leave everything empty if you don't know yet
+- **Logical Order:** Ask for what you always need first (paths), then optional context
+
+### Benefits
+- Makes sense for new projects (no context yet)
+- Makes sense for existing projects (have context)
+- Directories are always the starting point (local to project)
+- Context comes second (can be shared across projects)
+
+---
+
 ## [1.3.6] - 2025-11-10
 
 ### Fixed
