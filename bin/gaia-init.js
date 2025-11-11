@@ -270,7 +270,6 @@ async function runInteractiveWizard(detected) {
 ║   ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝     ╚═════╝ ╚═╝     ╚══════╝   ║
 ║                                                               ║
 ║        Multi-Agent DevOps Orchestration System                ║
-║                Powered by Claude Code                         ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
   `));
