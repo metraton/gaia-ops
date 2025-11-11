@@ -80,7 +80,7 @@ Claude Code (Orchestrator)
 - Route user requests to specialist agents
 - Provision context via `context_provider.py`
 - Enforce approval gates for T3 operations
-- Update system SSOTs (project-context.json, tasks.md)
+- Update system SSOTs (.claude/project-context/project-context.json, tasks.md)
 - Handle simple operations directly (ad-hoc commits, queries)
 
 **Agent responsibilities:**
@@ -94,12 +94,12 @@ Claude Code (Orchestrator)
 ## Documentation Structure
 
 ```
-/home/jaguilar/aaxis/rnd/repositories/
+<project-root>/
 ├── CLAUDE.md (core orchestrator instructions, 196 lines)
 ├── AGENTS.md (this file, compatibility layer)
 ├── .claude/
 │   ├── CHANGELOG.md (version history)
-│   ├── docs/
+│   ├── config/
 │   │   ├── orchestration-workflow.md (Phase 0-6 details)
 │   │   ├── git-standards.md (commit standards)
 │   │   ├── context-contracts.md (agent context requirements)
@@ -107,8 +107,9 @@ Claude Code (Orchestrator)
 │   ├── agents/ (agent definitions)
 │   ├── tools/ (context_provider.py, agent_router.py, etc.)
 │   ├── logs/ (audit trail, metrics)
-│   └── tests/ (test suite)
-└── .claude/project-context.json (SSOT for infrastructure state)
+│   ├── tests/ (test suite)
+│   └── project-context/
+│       └── project-context.json (SSOT for infrastructure state)
 ```
 
 ---
@@ -117,7 +118,7 @@ Claude Code (Orchestrator)
 
 1. **Read CLAUDE.md** (5 min) - Understand core principles and workflow
 2. **Review agent catalog** (10 min) - See available agents and capabilities
-3. **Check project context** (5 min) - Review `.claude/project-context.json` for current infrastructure state
+3. **Check project context** (5 min) - Review `.claude/project-context/project-context.json` for current infrastructure state
 4. **Run sample workflow** (15 min) - Test orchestrator with a simple task
 
 **Sample workflow:**
@@ -145,7 +146,7 @@ See `CLAUDE.md` and `.claude/CHANGELOG.md` for contribution guidelines.
 **Key rules:**
 - All commits MUST follow Conventional Commits (enforced by `commit_validator.py`)
 - Changes to infrastructure/deployments require approval gate (Phase 4)
-- Update SSOTs after realization (project-context.json, tasks.md)
+- Update SSOTs after realization (.claude/project-context/project-context.json, tasks.md)
 
 ---
 

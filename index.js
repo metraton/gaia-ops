@@ -55,17 +55,6 @@ export function getCommandPath(commandName) {
 }
 
 /**
- * Get absolute path to documentation
- * @deprecated Use getConfigPath() instead. Documentation moved from docs/ to config/ in v2.0.0
- * @param {string} docName - Name of the doc (e.g., 'orchestration-workflow.md')
- * @returns {string} Absolute path to doc file
- */
-export function getDocPath(docName) {
-  console.warn('getDocPath() is deprecated. Use getConfigPath() instead. Documentation is now in config/ directory.');
-  return join(PACKAGE_ROOT, 'config', docName);
-}
-
-/**
  * Get absolute path to a template
  * @param {string} templateName - Name of the template (e.g., 'CLAUDE.template.md')
  * @returns {string} Absolute path to template file
@@ -89,7 +78,6 @@ export default {
   getToolPath,
   getHookPath,
   getCommandPath,
-  getDocPath,
   getTemplatePath,
   getConfigPath
 };

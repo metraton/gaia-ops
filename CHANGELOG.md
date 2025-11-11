@@ -591,9 +591,9 @@ contract_keys = contracts["agents"][agent_name]["required"]  # Provider-specific
 
 **Recommended:**
 
-- Read `.claude/docs/orchestration-workflow.md` to understand full Phase 0-6 workflow
-- Review `.claude/docs/git-standards.md` for complete commit standards
-- Check `.claude/docs/agent-catalog.md` for detailed agent capabilities
+- Read `.claude/config/orchestration-workflow.md` to understand full Phase 0-6 workflow
+- Review `.claude/config/git-standards.md` for complete commit standards
+- Check `.claude/config/agent-catalog.md` for detailed agent capabilities
 
 ---
 
@@ -624,8 +624,8 @@ contract_keys = contracts["agents"][agent_name]["required"]  # Provider-specific
    - Add entry to this CHANGELOG under "Unreleased"
 
 2. **For new sections or features:**
-   - Decide if belongs in `CLAUDE.md` (core instructions) or `.claude/docs/*.md` (details)
-   - If modular doc, create/update appropriate file in `.claude/docs/`
+   - Decide if belongs in `CLAUDE.md` (core instructions) or `.claude/config/*.md` (details)
+   - If modular doc, create/update appropriate file in `.claude/config/`
    - If core instruction, update `CLAUDE.md` and add reference to modular doc
    - Increment MINOR version in frontmatter
    - Add entry to this CHANGELOG under "Unreleased"
