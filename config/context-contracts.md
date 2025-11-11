@@ -1,7 +1,7 @@
 # Context Contracts
 
-**Version:** 2.0.0
-**Last Updated:** 2025-11-07
+**Version:** 2.1.0
+**Last Updated:** 2025-11-10
 **Parent:** CLAUDE.md
 
 This document defines the **Context Contracts** for each specialized agent. A context contract specifies the minimum structured data that MUST be provided when invoking an agent.
@@ -25,6 +25,56 @@ A context contract is a schema that defines:
 - **Validation:** context_provider.py validates that required fields are present
 - **Documentation:** Developers know exactly what data an agent needs
 - **Evolution:** Contracts can be versioned and extended without breaking existing invocations
+
+---
+
+## Provider-Specific Contracts (NEW in v2.1.0)
+
+**As of v2.1.0, contracts are defined per cloud provider:**
+
+```
+.claude/config/
+├── context-contracts.gcp.json      # GCP-specific contracts
+├── context-contracts.aws.json      # AWS-specific contracts
+└── context-contracts.azure.json    # Azure-specific contracts (future)
+```
+
+### How It Works
+
+1. **context_provider.py detects the cloud provider:**
+   - Reads `metadata.cloud_provider` from project-context.json
+   - Falls back to inferring from field presence (`project_id` → GCP, `account_id` → AWS)
+   - Defaults to GCP if undetected
+
+2. **Loads the correct contract file:**
+   - GCP projects → `context-contracts.gcp.json`
+   - AWS projects → `context-contracts.aws.json`
+   - Azure projects → `context-contracts.azure.json`
+
+3. **Validates against provider-specific requirements:**
+   - GCP contracts expect `project_details.project_id`
+   - AWS contracts expect `project_details.account_id`
+   - All other fields remain provider-agnostic
+
+### Benefits of Provider-Specific Contracts
+
+✅ **Clarity:** Field names match cloud provider terminology
+✅ **Simplicity:** No complex conditional validation logic
+✅ **Extensibility:** Adding Azure = create `context-contracts.azure.json` (15 minutes)
+✅ **Agents stay agnostic:** Agents use pattern discovery, don't care about provider
+✅ **Single source of truth:** Orchestrator selects the right contract
+
+### Example
+
+```python
+# context_provider.py automatically handles this:
+
+cloud_provider = detect_cloud_provider(project_context)  # → "gcp"
+contracts = load_provider_contracts(cloud_provider)      # → loads context-contracts.gcp.json
+payload = get_contract_context(project_context, "terraform-architect", contracts)
+```
+
+**Result:** Orchestrator validates GCP-specific fields, agents receive clean payload.
 
 ---
 

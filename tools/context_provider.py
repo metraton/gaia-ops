@@ -10,8 +10,29 @@ from typing import Dict, List, Any, Optional
 # We construct the path relative to the script's assumed execution location.
 DEFAULT_CONTEXT_PATH = Path(".claude/project-context.json")
 
-# Defines the mandatory keys that form the "Context Contract" for each agent.
-AGENT_CONTRACTS: Dict[str, List[str]] = {
+# Path to provider-specific contract files
+# When running from installed project: .claude/config (symlinked)
+# When running from package: config/ (relative to script location)
+def get_contracts_dir():
+    """Determines the correct contracts directory based on execution context."""
+    # First try .claude/config (installed project)
+    installed_path = Path(".claude/config")
+    if installed_path.is_dir():
+        return installed_path
+
+    # Fallback to package location (for development/testing)
+    script_dir = Path(__file__).parent.parent  # tools/ -> gaia-ops/
+    package_path = script_dir / "config"
+    if package_path.is_dir():
+        return package_path
+
+    # Final fallback
+    return Path(".claude/config")
+
+DEFAULT_CONTRACTS_DIR = get_contracts_dir()
+
+# Fallback contracts (legacy support - used if provider-specific contracts don't exist)
+LEGACY_AGENT_CONTRACTS: Dict[str, List[str]] = {
     "terraform-architect": [
         "project_details",
         "terraform_infrastructure",
@@ -49,6 +70,79 @@ AGENT_CONTRACTS: Dict[str, List[str]] = {
         "operational_guidelines"
     ]
 }
+
+def detect_cloud_provider(project_context: Dict[str, Any]) -> str:
+    """
+    Detects the cloud provider from project-context.json.
+
+    Order of detection:
+    1. metadata.cloud_provider
+    2. sections.project_details.cloud_provider
+    3. Infer from field presence (project_id vs account_id)
+    4. Default to 'gcp'
+    """
+    # Check metadata
+    metadata = project_context.get("metadata", {})
+    if "cloud_provider" in metadata:
+        provider = metadata["cloud_provider"].lower()
+        # Handle multi-cloud: default to gcp for now
+        if provider == "multi-cloud":
+            print("⚠️  Multi-cloud detected, using GCP contracts as primary", file=sys.stderr)
+            return "gcp"
+        return provider
+
+    # Check project_details
+    sections = project_context.get("sections", {})
+    project_details = sections.get("project_details", {})
+    if "cloud_provider" in project_details:
+        provider = project_details["cloud_provider"].lower()
+        if provider == "multi-cloud":
+            print("⚠️  Multi-cloud detected, using GCP contracts as primary", file=sys.stderr)
+            return "gcp"
+        return provider
+
+    # Infer from fields
+    if "account_id" in project_details or "aws_account" in project_details:
+        print("⚠️  Inferred AWS from account_id field", file=sys.stderr)
+        return "aws"
+
+    if "project_id" in project_details or "project_id" in metadata:
+        print("⚠️  Inferred GCP from project_id field", file=sys.stderr)
+        return "gcp"
+
+    # Default
+    print("⚠️  Could not detect cloud provider, defaulting to GCP", file=sys.stderr)
+    return "gcp"
+
+def load_provider_contracts(cloud_provider: str, contracts_dir: Path = DEFAULT_CONTRACTS_DIR) -> Dict[str, Any]:
+    """
+    Loads provider-specific context contracts from JSON file.
+
+    Args:
+        cloud_provider: Provider name (gcp, aws, azure)
+        contracts_dir: Directory containing contract files
+
+    Returns:
+        Dict with contract definitions for all agents
+
+    Raises:
+        FileNotFoundError: If contract file doesn't exist and no legacy fallback
+    """
+    contract_file = contracts_dir / f"context-contracts.{cloud_provider}.json"
+
+    if not contract_file.is_file():
+        print(f"⚠️  Contract file not found: {contract_file}", file=sys.stderr)
+        print(f"⚠️  Falling back to legacy hardcoded contracts", file=sys.stderr)
+        return {"agents": {name: {"required": fields} for name, fields in LEGACY_AGENT_CONTRACTS.items()}}
+
+    try:
+        with open(contract_file, 'r', encoding='utf-8') as f:
+            contracts = json.load(f)
+            print(f"✓ Loaded {cloud_provider.upper()} contracts from {contract_file}", file=sys.stderr)
+            return contracts
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON in {contract_file}: {e}", file=sys.stderr)
+        sys.exit(1)
 
 def load_project_context(context_path: Path) -> Dict[str, Any]:
     """Loads the project context from the specified JSON file."""
@@ -160,20 +254,54 @@ def validate_project_paths(project_context: Dict[str, Any], auto_create: bool = 
     return warnings
 
 
-def get_contract_context(project_context: Dict[str, Any], agent_name: str) -> Dict[str, Any]:
-    """Extracts the contract-defined context for a given agent."""
-    contract_keys = AGENT_CONTRACTS.get(agent_name)
-    if not contract_keys:
-        print(
-            f"Warning: No contract found for agent '{agent_name}'. Returning empty contract.",
-            file=sys.stderr,
-        )
-        return {}
+def get_contract_context(
+    project_context: Dict[str, Any],
+    agent_name: str,
+    provider_contracts: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    Extracts the contract-defined context for a given agent.
+
+    Args:
+        project_context: The loaded project context
+        agent_name: Name of the agent
+        provider_contracts: Provider-specific contracts (if None, uses legacy fallback)
+
+    Returns:
+        Dict with required contract sections
+    """
+    # Use provider-specific contracts if available
+    if provider_contracts and "agents" in provider_contracts:
+        agent_contract = provider_contracts["agents"].get(agent_name)
+        if not agent_contract:
+            print(
+                f"Warning: No contract found for agent '{agent_name}' in provider contracts. Returning empty contract.",
+                file=sys.stderr,
+            )
+            return {}
+
+        contract_keys = agent_contract.get("required", [])
+    else:
+        # Fallback to legacy hardcoded contracts
+        contract_keys = LEGACY_AGENT_CONTRACTS.get(agent_name)
+        if not contract_keys:
+            print(
+                f"Warning: No contract found for agent '{agent_name}'. Returning empty contract.",
+                file=sys.stderr,
+            )
+            return {}
 
     sections = project_context.get("sections", {})
     if not sections:
         raise KeyError("project-context.json must contain a 'sections' object.")
-    return {key: sections[key] for key in contract_keys if key in sections}
+
+    # Extract only top-level section keys (e.g., "project_details" from "project_details.project_id")
+    section_keys = set()
+    for key in contract_keys:
+        section_name = key.split('.')[0]
+        section_keys.add(section_name)
+
+    return {key: sections[key] for key in section_keys if key in sections}
 
 
 def get_semantic_enrichment(
@@ -252,7 +380,7 @@ def main():
         and a semantic analysis of the user's task.
         """
     )
-    parser.add_argument("agent_name", choices=AGENT_CONTRACTS.keys(), help="The name of the agent being invoked.")
+    parser.add_argument("agent_name", help="The name of the agent being invoked.")
     parser.add_argument("user_task", help="The user's task or query for the agent.")
     parser.add_argument(
         "--context-file",
@@ -263,22 +391,34 @@ def main():
 
     args = parser.parse_args()
 
+    # Load project context
     project_context = load_project_context(args.context_file)
+
+    # Detect cloud provider and load provider-specific contracts
+    cloud_provider = detect_cloud_provider(project_context)
+    provider_contracts = load_provider_contracts(cloud_provider)
 
     # Validate project paths and auto-create missing directories
     validate_project_paths(project_context, auto_create=True)
 
-    contract_context = get_contract_context(project_context, args.agent_name)
-    
+    # Get contract context using provider-specific contracts
+    contract_context = get_contract_context(project_context, args.agent_name, provider_contracts)
+
+    # Get semantic enrichment
     enrichment_context = get_semantic_enrichment(
         project_context,
         list(contract_context.keys()),
         args.user_task
     )
 
+    # Build final payload
     final_payload = {
         "contract": contract_context,
-        "enrichment": enrichment_context
+        "enrichment": enrichment_context,
+        "metadata": {
+            "cloud_provider": cloud_provider,
+            "contract_version": provider_contracts.get("version", "unknown")
+        }
     }
 
     print(json.dumps(final_payload, indent=2))

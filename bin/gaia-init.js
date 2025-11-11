@@ -739,11 +739,12 @@ async function generateProjectContext(config) {
       cloud_provider: config.cloudProvider
     };
 
+    // Add provider-specific fields (matching contract expectations)
     if (config.gcpProjectId) {
-      projectDetails.project_id = config.gcpProjectId;
+      projectDetails.project_id = config.gcpProjectId;  // GCP contract expects project_id
     }
     if (config.awsAccountId) {
-      projectDetails.aws_account = config.awsAccountId;
+      projectDetails.account_id = config.awsAccountId;  // AWS contract expects account_id
     }
 
     // Build provider_credentials section

@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0] - 2025-11-10
+
+### Added - Provider-Specific Context Contracts
+- **NEW:** Created separate contract files per cloud provider
+  - `config/context-contracts.gcp.json` - GCP-specific contracts
+  - `config/context-contracts.aws.json` - AWS-specific contracts
+  - Ready for `context-contracts.azure.json` (future)
+
+- **Auto-Detection:** `context_provider.py` now automatically:
+  1. Detects cloud provider from `metadata.cloud_provider`
+  2. Falls back to inferring from field presence (`project_id` → GCP, `account_id` → AWS)
+  3. Loads the correct contract file
+  4. Validates against provider-specific requirements
+
+- **Test Fixtures:** Added sample contexts for testing
+  - `tests/fixtures/project-context.gcp.json`
+  - `tests/fixtures/project-context.aws.json`
+
+### Changed
+- **Context Provider:** Updated `tools/context_provider.py`
+  - Added `detect_cloud_provider()` function
+  - Added `load_provider_contracts()` function
+  - Updated `get_contract_context()` to accept provider contracts
+  - Legacy contracts remain for backward compatibility
+
+- **Field Names:** Standardized provider-specific fields
+  - GCP: `project_details.project_id` (no change)
+  - AWS: `project_details.account_id` (was `aws_account`)
+  - Installer updated to generate correct field names
+
+- **Templates:** Created AWS-specific template
+  - `templates/project-context.template.aws.json`
+  - Matches AWS naming conventions (EKS, RDS, ECR, etc.)
+
+- **Documentation:** Updated `config/context-contracts.md`
+  - Added "Provider-Specific Contracts" section
+  - Documented how provider detection works
+  - Explained benefits of provider-specific approach
+  - Version bumped to 2.1.0
+
+### Benefits
+- ✅ **Clarity:** Field names match cloud provider terminology
+- ✅ **Simplicity:** No complex conditional validation logic in agents
+- ✅ **Extensibility:** Adding Azure = create one JSON file (15 minutes)
+- ✅ **Agents Stay Agnostic:** Agents use pattern discovery, don't need provider logic
+- ✅ **Single Source of Truth:** Orchestrator selects the right contract
+
+### Backward Compatibility
+- **Legacy support maintained:** If provider-specific contracts don't exist, falls back to hardcoded contracts
+- **Existing projects:** Continue to work without changes
+- **Migration:** Optional, but recommended for clarity
+
+### Technical Details
+```python
+# Before (v2.0.0):
+contract_keys = AGENT_CONTRACTS[agent_name]  # Hardcoded
+
+# After (v2.1.0):
+cloud_provider = detect_cloud_provider(project_context)  # Auto-detect
+contracts = load_provider_contracts(cloud_provider)      # Load from JSON
+contract_keys = contracts["agents"][agent_name]["required"]  # Provider-specific
+```
+
+---
+
 ## [1.4.0] - 2025-11-10
 
 ### Changed - BREAKING: Complete Installer Redesign
