@@ -401,8 +401,21 @@ async function runInteractiveWizard(detected) {
   // =========================================================================
   // STEP 2: Ask remaining questions (with smart defaults from context)
   // =========================================================================
-  console.log(chalk.yellow('\n📍 Directory Configuration'));
-  console.log(chalk.gray('Verify or adjust the following paths:\n'));
+
+  // If we have project context, show a summary and only ask to confirm paths
+  if (projectContext) {
+    console.log(chalk.green('\n✅ Configuration loaded from project context:'));
+    console.log(chalk.gray(`  • Cloud: ${defaults.cloudProvider.toUpperCase()}`));
+    if (defaults.gcpProjectId) console.log(chalk.gray(`  • GCP Project: ${defaults.gcpProjectId}`));
+    if (defaults.awsAccountId) console.log(chalk.gray(`  • AWS Account: ${defaults.awsAccountId}`));
+    console.log(chalk.gray(`  • Region: ${defaults.region}`));
+    console.log(chalk.gray(`  • Cluster: ${defaults.clusterName}`));
+    console.log(chalk.yellow('\n📍 Directory Configuration'));
+    console.log(chalk.gray('Verify or adjust paths if needed:\n'));
+  } else {
+    console.log(chalk.yellow('\n📍 Directory Configuration'));
+    console.log(chalk.gray('Please provide your project configuration:\n'));
+  }
 
   const questions = [
     {
@@ -426,8 +439,9 @@ async function runInteractiveWizard(detected) {
       initial: defaults.appServices,
       validate: value => value.trim().length > 0
     },
+    // Only ask cloud provider if not loaded from context
     {
-      type: 'select',
+      type: projectContext ? null : 'select',
       name: 'cloudProvider',
       message: '☁️  Cloud provider:',
       choices: [
@@ -437,29 +451,43 @@ async function runInteractiveWizard(detected) {
       ],
       initial: defaults.cloudProvider === 'gcp' ? 0 : defaults.cloudProvider === 'aws' ? 1 : 2
     },
+    // Only ask GCP Project ID if not loaded from context
     {
-      type: (prev, values) => ['gcp', 'multi-cloud'].includes(values.cloudProvider) ? 'text' : null,
+      type: (prev, values) => {
+        const provider = values.cloudProvider || defaults.cloudProvider;
+        const needsGcp = ['gcp', 'multi-cloud'].includes(provider);
+        const hasValue = projectContext && defaults.gcpProjectId;
+        return (needsGcp && !hasValue) ? 'text' : null;
+      },
       name: 'gcpProjectId',
       message: '🌐 GCP Project ID (e.g., aaxis-rnd-non-prod):',
       initial: defaults.gcpProjectId,
       validate: value => value.trim().length > 0
     },
+    // Only ask AWS Account if not loaded from context
     {
-      type: (prev, values) => ['aws', 'multi-cloud'].includes(values.cloudProvider) ? 'text' : null,
+      type: (prev, values) => {
+        const provider = values.cloudProvider || defaults.cloudProvider;
+        const needsAws = ['aws', 'multi-cloud'].includes(provider);
+        const hasValue = projectContext && defaults.awsAccountId;
+        return (needsAws && !hasValue) ? 'text' : null;
+      },
       name: 'awsAccountId',
       message: '🌐 AWS Account ID (e.g., 929914624686):',
       initial: defaults.awsAccountId,
       validate: value => value.trim().length > 0
     },
+    // Only ask region if not loaded from context
     {
-      type: 'text',
+      type: projectContext && defaults.region ? null : 'text',
       name: 'region',
       message: '🌍 Primary Region (e.g., us-central1 for GCP, us-east-1 for AWS):',
       initial: defaults.region,
       validate: value => value.trim().length > 0
     },
+    // Only ask cluster name if not loaded from context
     {
-      type: 'text',
+      type: projectContext && defaults.clusterName ? null : 'text',
       name: 'clusterName',
       message: '☸️  Cluster Name (e.g., rnd-gke-nonprod or digital-eks-prod):',
       initial: defaults.clusterName,
@@ -480,17 +508,21 @@ async function runInteractiveWizard(detected) {
     }
   });
 
-  // Verify critical responses are present (some questions are conditional)
-  if (!responses.cloudProvider || !responses.clusterName) {
+  // Merge responses with defaults (for values skipped because they were in context)
+  const finalConfig = {
+    ...defaults,
+    ...responses,
+    projectContextRepo: defaults.repoUrl,
+    projectContextAlreadyCloned: !!projectContext
+  };
+
+  // Verify critical responses are present
+  if (!finalConfig.cloudProvider || !finalConfig.clusterName) {
     console.log(chalk.yellow('\n⚠️  Installation cancelled or incomplete\n'));
     process.exit(0);
   }
 
-  // Add project context info to responses
-  responses.projectContextRepo = defaults.repoUrl;
-  responses.projectContextAlreadyCloned = !!projectContext;
-
-  return responses;
+  return finalConfig;
 }
 
 // ============================================================================
@@ -630,9 +662,9 @@ async function generateAgentsMd() {
 
 /**
  * Validate and setup project paths (gitops, terraform, app-services)
- * Creates directories if they don't exist (with user confirmation in interactive mode)
+ * Creates directories automatically if they don't exist
  */
-async function validateAndSetupProjectPaths(config, nonInteractive) {
+async function validateAndSetupProjectPaths(config) {
   console.log(chalk.cyan('\n📁 Setting up project directories...\n'));
 
   const paths = {
@@ -650,30 +682,13 @@ async function validateAndSetupProjectPaths(config, nonInteractive) {
       continue;
     }
 
-    // Path doesn't exist - decide what to do
-    let shouldCreate = nonInteractive; // Auto-create in non-interactive mode
-
-    if (!nonInteractive) {
-      // Ask user in interactive mode
-      const response = await prompts({
-        type: 'confirm',
-        name: 'create',
-        message: `Directory ${chalk.yellow(userPath)} doesn't exist. Create it?`,
-        initial: true
-      });
-      shouldCreate = response.create;
-    }
-
-    if (shouldCreate) {
-      await fs.mkdir(absPath, { recursive: true });
-      console.log(chalk.green(`  ✓ ${name}: ${userPath} (created)`));
-    } else {
-      console.log(chalk.yellow(`  ⚠ ${name}: ${userPath} (skipped - agents may create it later if needed)`));
-    }
+    // Create directory automatically
+    await fs.mkdir(absPath, { recursive: true });
+    console.log(chalk.green(`  ✓ ${name}: ${userPath} (created)`));
 
     // Warn about absolute paths (portability concern)
     if (isAbsolute(userPath)) {
-      console.log(chalk.yellow(`  ⚠ Warning: Absolute path "${userPath}" may not work on other machines`));
+      console.log(chalk.yellow(`    ⚠ Note: Absolute path may not work on other machines`));
     }
   }
 
@@ -971,7 +986,7 @@ async function main() {
     await installClaudeAgentsPackage();
 
     // Step 5.5: Validate and setup project paths (gitops, terraform, app-services)
-    await validateAndSetupProjectPaths(config, args.nonInteractive);
+    await validateAndSetupProjectPaths(config);
 
     // Step 6: Create .claude/ directory with symlinks
     await createClaudeDirectory();

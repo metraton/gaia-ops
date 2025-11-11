@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.6] - 2025-11-10
+
+### Fixed
+- **Installer:** Skip questions when project context already has the answers
+- **Smart Detection:** Only ask what's missing or needs confirmation (paths)
+- **User Experience:** Show config summary when context is loaded
+- **Directory Creation:** Auto-create missing directories without prompting
+
+### Changed
+- When project context loads successfully, only asks to confirm/adjust paths
+- Cloud provider, credentials, region, and cluster name auto-applied from context
+- Clearer feedback showing what was loaded from project context
+- Missing directories (gitops, terraform, app-services) now created automatically
+
+### Improved
+- Eliminates ALL redundant questions when context exists
+- Better UX: "Here's what we loaded, just confirm the paths"
+- Faster setup for teams with complete project contexts
+- No interruptions for directory creation confirmations
+
+---
+
 ## [1.3.5] - 2025-11-10
 
 ### Added
