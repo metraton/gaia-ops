@@ -1,8 +1,9 @@
 import json
 import argparse
 import sys
+import os
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 # This script is expected to be run from the root of the repository.
 # The project context file is located at `.claude/project-context.json`.
@@ -56,6 +57,108 @@ def load_project_context(context_path: Path) -> Dict[str, Any]:
         sys.exit(1)
     with open(context_path, 'r', encoding='utf-8') as f:
         return json.load(f)
+
+
+def get_project_root() -> Path:
+    """
+    Finds the project root by looking for CLAUDE.md.
+    This is the reference point for resolving relative paths.
+    Similar to JAVA_HOME or GAIA_HOME concept.
+    """
+    current = Path.cwd()
+
+    # Walk up the directory tree looking for CLAUDE.md
+    while current != current.parent:
+        claude_md = current / "CLAUDE.md"
+        if claude_md.is_file():
+            return current
+        current = current.parent
+
+    # If not found, assume current directory is project root
+    print("Warning: CLAUDE.md not found, using current directory as project root", file=sys.stderr)
+    return Path.cwd()
+
+
+def resolve_path(relative_path: str, project_root: Optional[Path] = None) -> Path:
+    """
+    Resolves a path to absolute, handling both relative and absolute paths.
+
+    Examples:
+        ./gitops         → /home/jaguilar/project/gitops
+        ../shared-infra  → /home/jaguilar/shared-infra
+        /abs/path        → /abs/path (unchanged)
+
+    Args:
+        relative_path: Path from project-context.json
+        project_root: Project root (where CLAUDE.md is). If None, auto-detected.
+
+    Returns:
+        Absolute Path object
+    """
+    if project_root is None:
+        project_root = get_project_root()
+
+    path = Path(relative_path)
+
+    # If already absolute, return as-is
+    if path.is_absolute():
+        return path
+
+    # Resolve relative to project root
+    return (project_root / path).resolve()
+
+
+def validate_project_paths(project_context: Dict[str, Any], auto_create: bool = True) -> List[str]:
+    """
+    Validates that all critical paths in project-context.json exist.
+    Optionally creates missing directories with a warning.
+
+    Args:
+        project_context: The loaded project context
+        auto_create: If True, creates missing directories (default: True for agents)
+
+    Returns:
+        List of warning messages (empty if all OK)
+    """
+    warnings = []
+    project_root = get_project_root()
+
+    # Get paths section
+    paths = project_context.get("paths", {})
+    if not paths:
+        # Fallback to old format (backward compatibility)
+        paths = {
+            "gitops": project_context.get("gitops_configuration", {}).get("repository", {}).get("path"),
+            "terraform": project_context.get("terraform_infrastructure", {}).get("layout", {}).get("base_path"),
+            "app_services": project_context.get("application_services", {}).get("base_path")
+        }
+        # Filter out None values
+        paths = {k: v for k, v in paths.items() if v}
+
+    for path_name, path_value in paths.items():
+        if not path_value:
+            continue
+
+        abs_path = resolve_path(path_value, project_root)
+
+        if not abs_path.exists():
+            if auto_create:
+                try:
+                    abs_path.mkdir(parents=True, exist_ok=True)
+                    msg = f"Created missing directory: {path_name} at {abs_path}"
+                    print(f"⚠️  {msg}", file=sys.stderr)
+                    warnings.append(msg)
+                except Exception as e:
+                    msg = f"Failed to create {path_name} at {abs_path}: {e}"
+                    print(f"❌ {msg}", file=sys.stderr)
+                    warnings.append(msg)
+            else:
+                msg = f"Path does not exist: {path_name} = {path_value} (resolved to {abs_path})"
+                print(f"⚠️  {msg}", file=sys.stderr)
+                warnings.append(msg)
+
+    return warnings
+
 
 def get_contract_context(project_context: Dict[str, Any], agent_name: str) -> Dict[str, Any]:
     """Extracts the contract-defined context for a given agent."""
@@ -161,7 +264,10 @@ def main():
     args = parser.parse_args()
 
     project_context = load_project_context(args.context_file)
-    
+
+    # Validate project paths and auto-create missing directories
+    validate_project_paths(project_context, auto_create=True)
+
     contract_context = get_contract_context(project_context, args.agent_name)
     
     enrichment_context = get_semantic_enrichment(

@@ -446,6 +446,58 @@ async function generateAgentsMd() {
 }
 
 /**
+ * Validate and setup project paths (gitops, terraform, app-services)
+ * Creates directories if they don't exist (with user confirmation in interactive mode)
+ */
+async function validateAndSetupProjectPaths(config, nonInteractive) {
+  console.log(chalk.cyan('\n📁 Setting up project directories...\n'));
+
+  const paths = {
+    gitops: { path: config.gitops, name: 'GitOps' },
+    terraform: { path: config.terraform, name: 'Terraform' },
+    appServices: { path: config.appServices, name: 'App Services' }
+  };
+
+  for (const [, { path: userPath, name }] of Object.entries(paths)) {
+    const absPath = resolve(CWD, userPath);
+
+    // Check if path exists
+    if (existsSync(absPath)) {
+      console.log(chalk.gray(`  ✓ ${name}: ${userPath} (exists)`));
+      continue;
+    }
+
+    // Path doesn't exist - decide what to do
+    let shouldCreate = nonInteractive; // Auto-create in non-interactive mode
+
+    if (!nonInteractive) {
+      // Ask user in interactive mode
+      const response = await prompts({
+        type: 'confirm',
+        name: 'create',
+        message: `Directory ${chalk.yellow(userPath)} doesn't exist. Create it?`,
+        initial: true
+      });
+      shouldCreate = response.create;
+    }
+
+    if (shouldCreate) {
+      await fs.mkdir(absPath, { recursive: true });
+      console.log(chalk.green(`  ✓ ${name}: ${userPath} (created)`));
+    } else {
+      console.log(chalk.yellow(`  ⚠ ${name}: ${userPath} (skipped - agents may create it later if needed)`));
+    }
+
+    // Warn about absolute paths (portability concern)
+    if (isAbsolute(userPath)) {
+      console.log(chalk.yellow(`  ⚠ Warning: Absolute path "${userPath}" may not work on other machines`));
+    }
+  }
+
+  console.log('');
+}
+
+/**
  * Generate project-context.json
  */
 async function generateProjectContext(config) {
@@ -453,8 +505,17 @@ async function generateProjectContext(config) {
 
   try {
     const projectContext = {
-      version: '1.0',
-      last_updated: new Date().toISOString(),
+      metadata: {
+        version: '1.0',
+        last_updated: new Date().toISOString(),
+        project_root: '.',  // Reference point: where CLAUDE.md is located
+        created_by: 'gaia-init'
+      },
+      paths: {
+        gitops: config.gitops,
+        terraform: config.terraform,
+        app_services: config.appServices
+      },
       project_details: {
         id: config.projectId,
         region: config.region,
@@ -589,6 +650,9 @@ async function main() {
 
     // Step 5: Install @jaguilar87/gaia-ops package
     await installClaudeAgentsPackage();
+
+    // Step 5.5: Validate and setup project paths (gitops, terraform, app-services)
+    await validateAndSetupProjectPaths(config, args.nonInteractive);
 
     // Step 6: Create .claude/ directory with symlinks
     await createClaudeDirectory();
