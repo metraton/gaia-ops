@@ -258,28 +258,50 @@ function validateConfiguration(config, nonInteractive) {
  * Present interactive wizard to user
  */
 async function runInteractiveWizard(detected) {
-  console.log(chalk.cyan.bold('\n🤖 Claude Code Agent System Installer\n'));
-  console.log(chalk.gray('This wizard will set up the Claude Code agent system for your project.\n'));
+  // ASCII Art banner
+  console.log(chalk.cyan(`
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║                                                               ║
+    ║       ██████╗  █████╗ ██╗ █████╗       ██████╗ ██████╗ ███████╗       ║
+    ║      ██╔════╝ ██╔══██╗██║██╔══██╗     ██╔═══██╗██╔══██╗██╔════╝       ║
+    ║      ██║  ███╗███████║██║███████║     ██║   ██║██████╔╝███████╗       ║
+    ║      ██║   ██║██╔══██║██║██╔══██║     ██║   ██║██╔═══╝ ╚════██║       ║
+    ║      ╚██████╔╝██║  ██║██║██║  ██║     ╚██████╔╝██║     ███████║       ║
+    ║       ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝      ╚═════╝ ╚═╝     ╚══════╝       ║
+    ║                                                               ║
+    ║            Multi-Agent DevOps Orchestration System            ║
+    ║                    Powered by Claude Code                     ║
+    ║                                                               ║
+    ╚═══════════════════════════════════════════════════════════════╝
+  `));
+
+  console.log(chalk.gray('This wizard will set up the Gaia-Ops agent system for your project.\n'));
+
+  console.log(chalk.yellow('📍 Directory Configuration'));
+  console.log(chalk.gray('Gaia-Ops agents need to know where your code lives:\n'));
+  console.log(chalk.gray('  • GitOps: Kubernetes manifests that agents will monitor and deploy'));
+  console.log(chalk.gray('  • Terraform: Infrastructure code that agents will plan and apply'));
+  console.log(chalk.gray('  • App Services: Application code that agents will build and test\n'));
 
   const questions = [
     {
       type: 'text',
       name: 'gitops',
-      message: '📦 GitOps directory (Flux/Kubernetes manifests):',
+      message: '📦 GitOps directory:',
       initial: detected.gitops || './gitops',
       validate: value => value.trim().length > 0
     },
     {
       type: 'text',
       name: 'terraform',
-      message: '🔧 Terraform directory (infrastructure as code):',
+      message: '🔧 Terraform directory:',
       initial: detected.terraform || './terraform',
       validate: value => value.trim().length > 0
     },
     {
       type: 'text',
       name: 'appServices',
-      message: '🚀 App Services directory (application code):',
+      message: '🚀 App Services directory:',
       initial: detected.appServices || './app-services',
       validate: value => value.trim().length > 0
     },
@@ -307,6 +329,12 @@ async function runInteractiveWizard(detected) {
       name: 'installClaudeCode',
       message: '📥 Install Claude Code if not present?',
       initial: true
+    },
+    {
+      type: 'text',
+      name: 'projectContextRepo',
+      message: '🔗 Project context Git repo (optional, e.g., git@bitbucket.org:org/context.git):',
+      initial: ''
     }
   ];
 
@@ -382,6 +410,7 @@ async function createClaudeDirectory() {
     // Create project-specific directories (NOT symlinked)
     await fs.mkdir(join(claudeDir, 'logs'), { recursive: true });
     await fs.mkdir(join(claudeDir, 'tests'), { recursive: true });
+    await fs.mkdir(join(claudeDir, 'project-context'), { recursive: true });
 
     spinner.succeed('.claude/ directory created with symlinks');
   } catch (error) {
@@ -556,10 +585,10 @@ async function generateProjectContext(config) {
       }
     };
 
-    const projectContextPath = join(CWD, '.claude', 'project-context.json');
+    const projectContextPath = join(CWD, '.claude', 'project-context', 'project-context.json');
     await fs.writeFile(projectContextPath, JSON.stringify(projectContext, null, 2), 'utf-8');
 
-    spinner.succeed('project-context.json generated');
+    spinner.succeed('project-context/project-context.json generated');
   } catch (error) {
     spinner.fail('Failed to generate project-context.json');
     throw error;
@@ -595,6 +624,54 @@ async function installClaudeAgentsPackage() {
   } catch (error) {
     spinner.fail('Failed to install @jaguilar87/gaia-ops');
     throw error;
+  }
+}
+
+/**
+ * Clone project context repository (optional)
+ */
+async function cloneProjectContextRepo(repoUrl) {
+  if (!repoUrl || repoUrl.trim() === '') {
+    console.log(chalk.gray('\n✓ Skipping project context repo clone (not provided)\n'));
+    return;
+  }
+
+  const spinner = ora('Cloning project context repository...').start();
+
+  try {
+    const projectContextDir = join(CWD, '.claude', 'project-context');
+
+    // Remove the generated project-context.json as it will be replaced by the cloned repo
+    const generatedFile = join(projectContextDir, 'project-context.json');
+    if (existsSync(generatedFile)) {
+      await fs.unlink(generatedFile);
+    }
+
+    // Clone repo directly into project-context directory
+    await execAsync(`git clone ${repoUrl} ${projectContextDir}-temp`);
+
+    // Move contents from temp to project-context
+    const tempDir = `${projectContextDir}-temp`;
+    const files = await fs.readdir(tempDir);
+    for (const file of files) {
+      const src = join(tempDir, file);
+      const dest = join(projectContextDir, file);
+      await fs.rename(src, dest);
+    }
+
+    // Remove temp directory
+    await fs.rmdir(tempDir);
+
+    spinner.succeed('Project context repository cloned');
+    console.log(chalk.green(`  → Cloned from: ${repoUrl}`));
+    console.log(chalk.gray(`  → Location: .claude/project-context/\n`));
+  } catch (error) {
+    spinner.fail('Failed to clone project context repository');
+    console.log(chalk.yellow(`\n⚠️  You can clone it manually later with:`));
+    console.log(chalk.gray(`  cd .claude`));
+    console.log(chalk.gray(`  rm -rf project-context`));
+    console.log(chalk.gray(`  git clone ${repoUrl} project-context\n`));
+    // Don't throw - allow installation to continue
   }
 }
 
@@ -666,11 +743,22 @@ async function main() {
     // Step 9: Generate project-context.json
     await generateProjectContext(config);
 
+    // Step 10: Clone project context repository (optional)
+    if (config.projectContextRepo) {
+      await cloneProjectContextRepo(config.projectContextRepo);
+    }
+
     // Success message
     console.log(chalk.green.bold('\n✅ Installation complete!\n'));
     console.log(chalk.gray('Next steps:'));
     console.log(chalk.gray('  1. Review CLAUDE.md and adjust paths if needed'));
-    console.log(chalk.gray('  2. Update .claude/project-context.json with your services'));
+    if (!config.projectContextRepo) {
+      console.log(chalk.gray('  2. Update .claude/project-context/project-context.json with your services'));
+      console.log(chalk.gray('     OR clone your project context repo:'));
+      console.log(chalk.gray('     cd .claude && git clone <your-repo> project-context'));
+    } else {
+      console.log(chalk.gray('  2. Your project context has been cloned to .claude/project-context/'));
+    }
     console.log(chalk.gray('  3. Start Claude Code: claude-code\n'));
     console.log(chalk.cyan('📚 Documentation: .claude/config/\n'));
 
